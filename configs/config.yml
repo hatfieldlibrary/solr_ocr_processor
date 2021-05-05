@@ -1,0 +1,4 @@
+dspace_host:
+  "http://dspace-new.willamette.edu:8080/server/api"
+collections:
+  - "2ea40294-9d27-4341-8476-4fb51732c213"
