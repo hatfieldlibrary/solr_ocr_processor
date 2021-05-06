@@ -7,12 +7,12 @@ import (
 	"net/http"
 )
 
-func AddToIndex(host string, uuid string) {
-	manifest := unMarshallManifest(getManifest(host, uuid))
+func AddToIndex(settings Configuration, uuid string) {
+	manifest := unMarshallManifest(getManifest(settings.DSpaceHost, uuid))
 	annotations := unMarshallAnnotationList(getAnnotationList(manifest.SeeAlso.Id))
 	annotationsMap := createAnnotationHash(annotations.Resources)
 	altoFiles := getAltoFiles(annotationsMap)
-	indexFiles(annotationsMap, altoFiles, manifest.Id)
+	indexFiles(uuid, annotationsMap, altoFiles, manifest.Id, settings)
 }
 
 func getAltoFiles(annotationsMap map[string]string) []string {
@@ -21,47 +21,49 @@ func getAltoFiles(annotationsMap map[string]string) []string {
 	return altoFiles
 }
 
-func indexFiles(annotationsMap map[string]string, altoFiles []string, manifestId string) {
-	for i := 0; i < len(altoFiles); i++ {
-		alto := getAltoXml(annotationsMap[altoFiles[i]])
-		postToSolr(alto, manifestId, "identifier")
-	}
-}
 
 func getOcrFileNames(metsReader io.Reader) []string {
-	var fileNames = make([]string,0,200)
+	var fileNames = make([]string, 50)
 	parser := xml.NewDecoder(metsReader)
 	ocrFileElement := false
+	altoCounter := 0
 	for {
 		token, err := parser.Token()
 		if err != nil {
 			break
 		}
 		switch t := token.(type) {
-			case xml.StartElement:
-				element := xml.StartElement(t)
-				name := element.Name.Local
-				if name == "file" {
-					for i := 0; i < len(element.Attr); i++ {
-						if element.Attr[i].Value == "ocr" {
-							ocrFileElement = true
-						}
+		case xml.StartElement:
+			element := xml.StartElement(t)
+			name := element.Name.Local
+			if name == "file" {
+				for i := 0; i < len(element.Attr); i++ {
+					if element.Attr[i].Value == "ocr" {
+						ocrFileElement = true
 					}
 				}
-				if name == "FLocat" && ocrFileElement == true {
-					for i := 0; i < len(element.Attr); i++ {
-						if element.Attr[i].Name.Local == "href" {
-							fileNames = append(fileNames, element.Attr[i].Value)
+			}
+			if name == "FLocat" && ocrFileElement == true {
+				for i := 0; i < len(element.Attr); i++ {
+					if element.Attr[i].Name.Local == "href" {
+						// Allocate more capacity.
+						if altoCounter == cap(fileNames)  {
+							newFileNames := make([]string, 2*cap(fileNames))
+							copy(newFileNames, fileNames)
+							fileNames = newFileNames
 						}
+						fileNames[altoCounter] = element.Attr[i].Value
+						altoCounter++
 					}
 				}
+			}
 
-			case xml.EndElement:
-				element := xml.EndElement(t)
-				name := element.Name.Local
-				if name == "file" {
-					ocrFileElement = false
-				}
+		case xml.EndElement:
+			element := xml.EndElement(t)
+			name := element.Name.Local
+			if name == "file" {
+				ocrFileElement = false
+			}
 		}
 	}
 

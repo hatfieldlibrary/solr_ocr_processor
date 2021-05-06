@@ -1,5 +1,19 @@
 package internal
 
+type Configuration struct {
+	DSpaceHost string
+	Collections []string
+	SolrUrl string
+	SolrCore string
+	XmlFileLocation string
+	LogDir string
+}
+
+type SolrPost struct {
+	Id          string `json:"id"`
+	ManifestUrl string `json:"manifest_url"`
+	OcrText     string `json:"ocr_text"`
+}
 
 type Manifest struct {
 	Context string `json:"@context"`
