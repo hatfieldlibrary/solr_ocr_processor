@@ -28,7 +28,7 @@ func getConfig(configFilePath *string) Configuration {
 
 func main() {
 
-	configFilePath := flag.String("config", "./configs", "path to the directory that contains" +
+	configFilePath := flag.String("config", "./configs", "path to the directory that contains " +
 		"your config.yaml file")
 	action := flag.String("action", "", "the action to perform (e.g. add)")
 	item := flag.String("item", "", "the dspace item uuid")

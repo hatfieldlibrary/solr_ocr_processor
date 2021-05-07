@@ -14,7 +14,7 @@ Usage:
   -action string
         the action to perform (e.g. add)
   -config string
-        path to the directory that containsyour config.yaml file (default "./configs")
+        path to the directory that contains your config.yaml file (default "./configs")
   -item string
         the dspace item uuid
         
