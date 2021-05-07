@@ -20,3 +20,5 @@ Usage:
         
   Example: ./altoindexer -action=add -config=/home/user -item=f3b10302-xxxx-xxxx-xxxx-3cc3ea89b366
 ```
+This starter implementation indexes single items retrieved via their DSpace Item id.  It needs to called by 
+a parent process that monitors DSpace Collections and syncs the Solr index as Items are added.
