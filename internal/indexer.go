@@ -1,28 +1,32 @@
 package internal
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 func indexFiles(uuid string, annotationsMap map[string]string, altoFiles []string,
 	manifestId string, settings Configuration) {
 	for i := 0; i < len(altoFiles); i++ {
 		if len(altoFiles[i]) > 0 {
 			alto := getAltoXml(annotationsMap[altoFiles[i]])
-			escapedAlto := escapeAlto(alto)
-			postToSolr(uuid, altoFiles[i], escapedAlto, manifestId, "identifier", settings)
+			escapedAlto := escapeAlto(&alto)
+			postToSolr(uuid, altoFiles[i], *escapedAlto, manifestId, "identifier", settings)
 		}
 	}
 }
 
-func escapeAlto(alto string) string {
+func escapeAlto(alto *string) *string {
 	escapedAlto := ""
-	for _, runeValue := range alto {
+	var escapedAltoSlice []string
+	for _, runeValue := range *alto {
 		if runeValue > 127 {
-			escapedAlto += convertRune(runeValue)
+			escapedAlto = strings.Join(escapedAltoSlice, convertRune(runeValue))
 		} else {
-			escapedAlto += string(runeValue)
+			escapedAlto = strings.Join(escapedAltoSlice, string(runeValue))
 		}
 	}
-	return escapedAlto
+	return &escapedAlto
 }
 
 func convertRune(rune rune) string {
