@@ -102,12 +102,12 @@ func getManifest(host string, uuid string) []byte {
 	endpoint := getApiEndpoint(host, uuid, "manifest")
 	resp, err := http.Get(endpoint)
 	if err != nil {
-		println("oops")
+		println(err)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		println("oops")
+		println(err)
 	}
 	return body
 }
@@ -120,7 +120,7 @@ func getAnnotationList(id string) []byte {
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		println("oops")
+		println(err)
 	}
 	return body
 

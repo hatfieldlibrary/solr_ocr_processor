@@ -1,5 +1,5 @@
 dspace_host:
-  "http://dspace-new.willamette.edu:8080/server/api"
+  "http://dspace.host.org:8080/server/api"
 collections:
   - "2ea40294-9d27-4341-8476-4fb51732c213"
 solr_url:
@@ -7,6 +7,6 @@ solr_url:
 solr_core:
   "word_highlighting"
 xml_file_location:
-  "/Users/michaelspalti/willamette/dspace_migration_data/solr/escaped_alto_files"
+  "/path/to/escaped_alto_files"
 log_dir:
   "."
