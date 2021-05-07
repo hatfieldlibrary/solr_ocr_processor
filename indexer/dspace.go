@@ -1,4 +1,4 @@
-package internal
+package main
 
 import (
 	"bytes"
@@ -27,6 +27,9 @@ func getAltoXml(url string) string {
 		println("oops")
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return ""
+	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		println("oops")

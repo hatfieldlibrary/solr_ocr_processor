@@ -1,21 +1,22 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/spf13/viper"
-	"go_alto_indexer/internal"
 	"os"
 )
 
-func getConfig() internal.Configuration {
+func getConfig(configFilePath *string) Configuration {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./configs")
+	viper.AddConfigPath(*configFilePath)
+	print(*configFilePath)
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil { // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	settings := internal.Configuration {
+	settings := Configuration{
 		DSpaceHost: viper.GetString("dspace_host"),
 		Collections: viper.GetStringSlice("Collections"),
 		SolrUrl: viper.GetString("solr_url"),
@@ -27,6 +28,10 @@ func getConfig() internal.Configuration {
 }
 
 func main() {
+
+	configFilePath := flag.String("config", "./configs", "path to the directory that contains" +
+		"your config.yaml file")
+
 	args := os.Args[1:]
 	action := ""
 	item := ""
@@ -38,7 +43,7 @@ func main() {
 	if len(args) > 1 {
 		item = args[1]
 	}
-	settings := getConfig()
+	settings := getConfig(configFilePath)
 	fmt.Println(settings.DSpaceHost)
 	if len(settings.Collections) > 0 {
 		fmt.Println(settings.Collections[0])
@@ -46,7 +51,7 @@ func main() {
 		fmt.Println("No dspace collection handles provided in the configuration.")
 	}
 	if action == "add" && len(item) > 0 {
-		internal.AddToIndex(settings, item)
+		AddToIndex(settings, item)
 	}
 }
 
