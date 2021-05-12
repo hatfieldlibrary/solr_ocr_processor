@@ -1,4 +1,4 @@
-package main
+package index
 
 type Configuration struct {
 	DSpaceHost string

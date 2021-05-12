@@ -1,4 +1,4 @@
-package main
+package index
 
 import (
 	"flag"
@@ -35,11 +35,8 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Println(*configFilePath)
-	fmt.Println(*action)
-	fmt.Println(* item)
 	settings := getConfig(configFilePath)
-	fmt.Println(settings.DSpaceHost)
+
 	if len(settings.Collections) > 0 {
 		fmt.Println(settings.Collections[0])
 	} else {

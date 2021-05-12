@@ -8,7 +8,6 @@ The Go program runs on the file system used by Solr. It retrieves METS and ALTO 
 coordinates from ALTO files located on the shared file system.
 
 
-
 ```  
 Usage:
 

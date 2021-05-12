@@ -1,4 +1,4 @@
-module go_alto_indexer
+module github.com/mspalti/alto_indexer
 
 go 1.16
 

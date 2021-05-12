@@ -1,4 +1,4 @@
-package main
+package index
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 func AddToIndex(settings Configuration, uuid string) {
 	manifest := unMarshallManifest(getManifest(settings.DSpaceHost, uuid))
 	annotations := unMarshallAnnotationList(getAnnotationList(manifest.SeeAlso.Id))
-	annotationsMap := createAnnotationHash(annotations.Resources)
+	annotationsMap := createAnnotationMap(annotations.Resources)
 	altoFiles := getAltoFiles(annotationsMap)
 	indexFiles(uuid, annotationsMap, altoFiles, manifest.Id, settings)
 }
@@ -71,7 +71,7 @@ func getOcrFileNames(metsReader io.Reader) []string {
 
 }
 
-func createAnnotationHash(annotations []ResourceAnnotation) map[string]string {
+func createAnnotationMap(annotations []ResourceAnnotation) map[string]string {
 
 	annotationMap := make(map[string]string)
 	for i := 0; i < len(annotations); i++ {
