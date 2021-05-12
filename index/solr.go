@@ -29,7 +29,7 @@ func postToSolr(uuid string, fileName string, altoFile string, manifestId string
 	json.NewEncoder(payloadBuf).Encode(solrPostBody)
 	solrUrl := fmt.Sprintf("%s/%s/update/json/docs", settings.SolrUrl, settings.SolrCore)
 
-	fmt.Println(solrUrl)
+	// fmt.Println(payloadBuf)
 
 	req, err := http.NewRequest("POST", solrUrl, payloadBuf)
 	req.Header.Set("Content-Type", "application/json")

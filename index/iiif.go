@@ -115,7 +115,7 @@ func getManifest(host string, uuid string) []byte {
 func getAnnotationList(id string) []byte {
 	resp, err := http.Get(id)
 	if err != nil {
-		println("oops")
+		println(err)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)

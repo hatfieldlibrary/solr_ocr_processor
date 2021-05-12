@@ -1,8 +1,9 @@
-package index
+package main
 
 import (
 	"flag"
 	"fmt"
+	. "github.com/mspalti/alto_indexer/index"
 	"github.com/spf13/viper"
 )
 
