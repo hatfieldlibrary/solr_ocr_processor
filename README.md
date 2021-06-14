@@ -2,11 +2,11 @@
 
 This prototype works with a proposed DSpace 7 IIIF implementation that is currently under review: https://github.com/DSpace/DSpace/pull/3210.  
 
-Requires this Solr plugin: https://github.com/dbmdz/solr-ocrhighlighting.
+Requires this Solr plugin from the MDZ Digital Library team: https://github.com/dbmdz/solr-ocrhighlighting.
 
-The Go program runs on the file system used by Solr. It retrieves METS and ALTO files from DSpace using Manifests retrieved via the IIIF REST API. ALTO files are pre-processed before indexing by Solr. Solr retrieves word highlight 
-coordinates from ALTO files located on the shared file system.
-
+The Go program runs on the same file system as the Solr index. It retrieves METS and ALTO files from DSpace,
+ using the IIIF manifest's seeAlso AnnotationList. ALTO files are retrieved from DSpace and 
+pre-processed before indexing by Solr. 
 
 ```  
 Usage:
