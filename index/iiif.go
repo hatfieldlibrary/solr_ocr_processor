@@ -7,18 +7,37 @@ import (
 	"net/http"
 )
 
-func AddToIndex(settings Configuration, uuid string) {
-	manifest := unMarshallManifest(getManifest(settings.DSpaceHost, uuid))
-	annotations := unMarshallAnnotationList(getAnnotationList(manifest.SeeAlso.Id))
+func AddItem(settings Configuration, uuid string) error {
+
+	manifestJson, err := getManifest(settings.DSpaceHost, uuid)
+	if err != nil {
+		return err
+	}
+	manifest, err := unMarshallManifest(manifestJson)
+	if err != nil {
+		return err
+	}
+	annotations, err := unMarshallAnnotationList(getAnnotationList(manifest.SeeAlso.Id))
+	if err != nil {
+		return err
+	}
 	annotationsMap := createAnnotationMap(annotations.Resources)
-	altoFiles := getAltoFiles(annotationsMap)
+	altoFiles, err := getAltoFiles(annotationsMap)
+	if err != nil {
+		return err
+	}
 	indexFiles(uuid, annotationsMap, altoFiles, manifest.Id, settings)
+	return nil
+
 }
 
-func getAltoFiles(annotationsMap map[string]string) []string {
-	metsReader := getMetsXml(annotationsMap["mets.xml"])
+func getAltoFiles(annotationsMap map[string]string) ([]string, error) {
+	metsReader, err := getMetsXml(annotationsMap["mets.xml"])
+	if err != nil {
+		return nil, err
+	}
 	altoFiles := getOcrFileNames(metsReader)
-	return altoFiles
+	return altoFiles, nil
 }
 
 
@@ -82,34 +101,34 @@ func createAnnotationMap(annotations []ResourceAnnotation) map[string]string {
 	return annotationMap
 }
 
-func unMarshallManifest(bytes []byte) Manifest {
+func unMarshallManifest(bytes []byte) (Manifest, error) {
 	var manifest Manifest
 	if err := json.Unmarshal(bytes, &manifest); err != nil {
-		panic(err)
+		return manifest, err
 	}
-	return manifest
+	return manifest, nil
 }
 
-func unMarshallAnnotationList(bytes []byte) ResourceAnnotationList {
+func unMarshallAnnotationList(bytes []byte) (ResourceAnnotationList, error) {
 	var annotations ResourceAnnotationList
 	if err := json.Unmarshal(bytes, &annotations); err != nil {
-		panic(err)
+		return annotations, err
 	}
-	return annotations
+	return annotations, nil
 }
 
-func getManifest(host string, uuid string) []byte {
+func getManifest(host string, uuid string) ([]byte, error) {
 	endpoint := getApiEndpoint(host, uuid, "manifest")
 	resp, err := http.Get(endpoint)
 	if err != nil {
-		println(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		println(err)
+		return nil, err
 	}
-	return body
+	return body, err
 }
 
 func getAnnotationList(id string) []byte {

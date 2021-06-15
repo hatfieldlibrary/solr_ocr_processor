@@ -14,7 +14,10 @@ func indexFiles(uuid string, annotationsMap map[string]string, altoFiles []strin
 	manifestId string, settings Configuration) {
 	for i := 0; i < len(altoFiles); i++ {
 		if len(altoFiles[i]) > 0 {
-			alto := getAltoXml(annotationsMap[altoFiles[i]])
+			alto, err := getAltoXml(annotationsMap[altoFiles[i]])
+			if err != nil {
+				// do something
+			}
 			if len(alto) != 0 {
 				updatedAlto := setAltoId(&alto, i)
 				escapedAlto := escapeAlto(updatedAlto)

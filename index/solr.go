@@ -9,7 +9,8 @@ import (
 	"path/filepath"
 )
 
-func postToSolr(uuid string, fileName string, altoFile string, manifestId string, identifier string, settings Configuration) {
+func postToSolr(uuid string, fileName string, altoFile string, manifestId string,
+	identifier string, settings Configuration) string {
 
 	var extension = filepath.Ext(fileName)
 	solrId := uuid + "-" + fileName[0:len(fileName)-len(extension)]
@@ -29,8 +30,6 @@ func postToSolr(uuid string, fileName string, altoFile string, manifestId string
 	json.NewEncoder(payloadBuf).Encode(solrPostBody)
 	solrUrl := fmt.Sprintf("%s/%s/update/json/docs", settings.SolrUrl, settings.SolrCore)
 
-	// fmt.Println(payloadBuf)
-
 	req, err := http.NewRequest("POST", solrUrl, payloadBuf)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -41,7 +40,7 @@ func postToSolr(uuid string, fileName string, altoFile string, manifestId string
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
+	return resp.Status
 
 
 }

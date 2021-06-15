@@ -6,34 +6,30 @@ import (
 	"net/http"
 )
 
-func getMetsXml(url string) io.Reader {
+func getMetsXml(url string) (io.Reader, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		println("oops")
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		println("oops")
+		return nil, err
 	}
-
-	return bytes.NewReader(body)
+	return bytes.NewReader(body), err
 }
 
-func getAltoXml(url string) string {
+func getAltoXml(url string) (string, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		println("oops")
+		return "", err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return ""
-	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		println("oops")
+		return "", err
 	}
 
-	return string(body)
+	return string(body), err
 }
