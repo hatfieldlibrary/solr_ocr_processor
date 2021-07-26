@@ -6,6 +6,7 @@ type Configuration struct {
 	SolrUrl string
 	SolrCore string
 	XmlFileLocation string
+	HttpPort string
 	LogDir string
 }
 

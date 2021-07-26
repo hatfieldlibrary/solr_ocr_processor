@@ -1,5 +1,5 @@
 dspace_host:
-  "http://dspace.host.org:8080/server/api"
+  "http://localhost:8080/server/api"
 collections:
   - "2ea40294-9d27-4341-8476-4fb51732c213"
 solr_url:
@@ -7,6 +7,8 @@ solr_url:
 solr_core:
   "word_highlighting"
 xml_file_location:
-  "/path/to/escaped_alto_files"
+  "/Users/michaelspalti/alto_transformed_solr"
+http_port:
+  "3000"
 log_dir:
   "."
