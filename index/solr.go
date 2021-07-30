@@ -3,22 +3,23 @@ package index
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 )
 
-func postToSolr(uuid string, fileName string, altoFile string, manifestId string,
-	identifier string, settings Configuration) string {
+func postToSolr(uuid string, fileName string, altoFile *string, manifestId string,
+	settings Configuration) error {
 
 	var extension = filepath.Ext(fileName)
 	solrId := uuid + "-" + fileName[0:len(fileName)-len(extension)]
 	path := settings.XmlFileLocation + "/" + solrId + "_escaped.xml"
 
-	err2 := ioutil.WriteFile(path, []byte(altoFile), 0644)
+	err2 := ioutil.WriteFile(path, []byte(*altoFile), 0644)
 	if err2 != nil {
-		panic(err2)
+		return errors.New("could not write escaped alto file")
 	}
 
 	solrPostBody := &SolrPost{
@@ -36,11 +37,11 @@ func postToSolr(uuid string, fileName string, altoFile string, manifestId string
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		return errors.New("could not post to solr file")
 	}
 	defer resp.Body.Close()
 
-	return resp.Status
+	return nil
 
 
 }

@@ -3,6 +3,7 @@ package index
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -11,20 +12,27 @@ import (
 )
 
 func indexFiles(uuid string, annotationsMap map[string]string, altoFiles []string,
-	manifestId string, settings Configuration) {
+	manifestId string, settings Configuration) error {
 	for i := 0; i < len(altoFiles); i++ {
 		if len(altoFiles[i]) > 0 {
 			alto, err := getAltoXml(annotationsMap[altoFiles[i]])
 			if err != nil {
-				// do something
+				return errors.New("could not retrieve alto file from dspace")
 			}
 			if len(alto) != 0 {
-				updatedAlto := setAltoId(&alto, i)
+				updatedAlto, err := setAltoId(&alto, i)
+				if err != nil {
+					return err
+				}
 				escapedAlto := escapeAlto(updatedAlto)
-				postToSolr(uuid, altoFiles[i], *escapedAlto, manifestId, "identifier", settings)
+				err = postToSolr(uuid, altoFiles[i], escapedAlto, manifestId, settings)
+				if err != nil {
+					return errors.New("solr indexing failed: " + err.Error())
+				}
 			}
 		}
 	}
+	return nil
 }
 
 func escapeAlto(alto *string) *string {
@@ -47,7 +55,7 @@ func convertRune(rune rune) string {
 	return ref
 }
 
-func setAltoId(alto *string, position int) *string {
+func setAltoId(alto *string, position int) (*string, error) {
 	var buffer bytes.Buffer
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
@@ -59,6 +67,7 @@ func setAltoId(alto *string, position int) *string {
 		}
 		if err != nil {
 			log.Printf("error getting token: %t\n", err)
+			return nil, err
 			break
 		}
 
@@ -175,7 +184,7 @@ func setAltoId(alto *string, position int) *string {
 		log.Fatal(err)
 	}
 	out := buffer.String()
-	return &out
+	return &out, nil
 
 }
 
