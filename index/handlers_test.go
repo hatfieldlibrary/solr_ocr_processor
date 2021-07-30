@@ -40,13 +40,9 @@ func TestHandleAction(t *testing.T) {
 		LogDir:          "",
 	}
 
-	spy := &SpyFakeAddItem{settings: &configuration, uuid: &uuid}
-	spydel := &SpyFakeDeleteItem{settings: &configuration, uuid: &uuid}
-	indexers := []Indexer{spy, spydel}
-
 	// test add
-	axn := "add"
-	err := HandleAction(indexers, &configuration, &uuid, &axn)
+	spy := &SpyFakeAddItem{settings: &configuration, uuid: &uuid}
+	err := HandleAction(spy, &configuration, &uuid)
 	if err != nil {
 		print(err)
 	}
@@ -55,8 +51,8 @@ func TestHandleAction(t *testing.T) {
 	}
 
 	// test delete
-	axn = "delete"
-	err = HandleAction(indexers, &configuration, &uuid, &axn)
+	spydel := &SpyFakeDeleteItem{settings: &configuration, uuid: &uuid}
+	err = HandleAction(spydel, &configuration, &uuid)
 	if err != nil {
 		print(err)
 	}
