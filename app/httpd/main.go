@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	. "github.com/mspalti/altoindexer/src/app/index"
+	. "github.com/mspalti/altoindexer/index"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
@@ -10,7 +10,16 @@ import (
 	"strings"
 )
 
-const configFilePath = "~/configs"
+// This absolute path is the mount point for the
+// container volume. If you are running this
+// locally or not using a container, make
+// this a relative path to the "configs" directory
+// in this project. Create the config.yml file there.
+const configFilePath = "/app/configs"
+// This absolute path is the container mount point for the log
+// directory. If you change it during development be sure
+// to revert to this path before pushing a container image.
+const logDirectory = "/app/logs"
 
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
@@ -42,6 +51,8 @@ func configuredHandler(config *Configuration) http.HandlerFunc {
 		}
 		itemId := pathParams[0]
 		action := pathParams[1]
+		log.Println(itemId)
+		log.Println(action)
 		// add and delete actions
 		var idx Indexer
 		if action == "add" {
@@ -70,14 +81,24 @@ func handleError(err error, response http.ResponseWriter, code int) {
 		response.WriteHeader(code)
 }
 
+func getLogFile() (*os.File, error) {
+	path := logDirectory + "/alto_indexer.log"
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE, 0775)
+	return file, err
+}
+
 func main() {
 	config, err := config()
-	file, err := os.OpenFile(config.LogDir + "/alto_indexer.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	log.SetOutput(file)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	file, err := getLogFile()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.SetOutput(file)
 	// TODO implement post and delete methods
 	http.HandleFunc("/", configuredHandler(config))
 	log.Fatal(http.ListenAndServe(":" + config.HttpPort, nil))
