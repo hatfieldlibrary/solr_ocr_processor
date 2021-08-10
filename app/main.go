@@ -83,7 +83,7 @@ func handleError(err error, response http.ResponseWriter, code int) {
 
 func getLogFile() (*os.File, error) {
 	path := logDirectory + "/alto_indexer.log"
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE, 0775)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE, 0)
 	return file, err
 }
 
