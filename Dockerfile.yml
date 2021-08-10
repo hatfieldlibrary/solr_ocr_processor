@@ -19,10 +19,10 @@ RUN go mod download
 
 RUN mkdir ./httpd
 RUN mkdir ./index
-COPY ./app/httpd/* ./httpd/
+COPY ./app/main.go ./
 COPY ./app/index/* ./index/
 
 RUN go install -v ./...
 
-ENTRYPOINT ["/go/bin/httpd"]
+ENTRYPOINT ["/go/bin/altoindexer"]
 
