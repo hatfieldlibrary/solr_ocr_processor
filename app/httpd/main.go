@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	. "github.com/mspalti/alto_indexer/index"
+	. "github.com/mspalti/altoindexer/src/app/index"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const configFilePath = "./configs"
+const configFilePath = "~/configs"
 
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
