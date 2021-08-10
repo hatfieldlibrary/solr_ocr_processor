@@ -17,8 +17,6 @@ COPY ./app/go.sum ./
 
 RUN go mod download
 
-RUN mkdir ./httpd
-RUN mkdir ./index
 COPY ./app/main.go ./
 COPY ./app/index/* ./index/
 
