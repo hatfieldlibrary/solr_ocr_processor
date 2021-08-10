@@ -13,4 +13,4 @@ http_port:
   "3000"
 log_dir:
   # mount point for the container volume.
-  "/app/logs"
+  "./logs"
