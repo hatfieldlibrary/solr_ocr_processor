@@ -1,5 +1,7 @@
 # Solr Word Highlight Indexer
 
+Note: This documentation is no longer accurate. 
+
 This prototype works with a proposed DSpace 7 IIIF implementation that is currently under review: https://github.com/DSpace/DSpace/pull/3210.  
 
 Requires this Solr plugin from the MDZ Digital Library team: https://github.com/dbmdz/solr-ocrhighlighting.
