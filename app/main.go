@@ -13,8 +13,7 @@ import (
 // This absolute path is the mount point for the
 // container volume. If you are running this
 // locally or not using a container, make
-// this a relative path to the "configs" directory
-// in this project. Create the config.yml file there.
+// this a relative path.
 const configFilePath = "/app/configs"
 // This absolute path is the container mount point for the log
 // directory. If you change it during development be sure
@@ -25,9 +24,10 @@ func config() (*Configuration, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(configFilePath)
+
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil { // Handle errors reading the config file
-		return &Configuration{}, errors.New("fatal error reading config file")
+		return &Configuration{}, errors.New("fatal error reading config file" + err.Error())
 	}
 	config := Configuration{
 		DSpaceHost: viper.GetString("dspace_host"),
