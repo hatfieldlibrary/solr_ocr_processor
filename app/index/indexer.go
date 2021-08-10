@@ -19,7 +19,7 @@ type DeleteItem struct {}
 
 
 func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
-
+	log.Println("in indexer with ")
 	manifestJson, err := getManifest(settings.DSpaceHost, *uuid)
 	if err != nil {
 		return err
@@ -141,6 +141,7 @@ func unMarshallAnnotationList(bytes []byte) (ResourceAnnotationList, error) {
 
 func getManifest(host string, uuid string) ([]byte, error) {
 	endpoint := getApiEndpoint(host, uuid, "manifest")
+	log.Println(endpoint)
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		return nil, err
