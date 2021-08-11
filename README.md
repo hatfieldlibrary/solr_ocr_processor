@@ -21,7 +21,7 @@ To run the container:
 
 ## Usage
 
-Currently, only "add" operations are supported. The service will soon support deletion. At this time the only supported method is GET but POST and DELETE methods are planned.  
+Currently, only "add" operations are supported. The service will soon support search and deletion. At this time the only supported method is GET but POST and DELETE methods are planned.  
 
 `http://<host>:3000/413065ef-e242-4d0e-867d-8e2f6486be56/add`
 
