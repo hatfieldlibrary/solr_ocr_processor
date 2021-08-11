@@ -5,7 +5,7 @@ This is an early release for testing.
 ## Processing DSpace IIIF Records for Search API Requests 
 This service pre-processes METS/ALTO files for indexing by the solr-ocrhighlighting Solr plugin. That plugin is maintained by the MDZ Digital Library team: https://github.com/dbmdz/solr-ocrhighlighting.
 
-When indexing a new item, the service takes the DSpace Item ID as an HTTP request parameter. It then uses the DSpace IIIF REST API to retrieve the URLs for METS/ALTO files in DSpace. The METS file describes the structure of the document, including the sequence of ALTO OCR files. This information is used to retrieve and post ALTO files to the Solr plugin for indexing in page order. The ALTO files are also preprocessed and written to disk as required by the Solr plugin.
+When indexing a new item, the service takes the DSpace Item ID as an HTTP request parameter. It then retrieves the IIIF `Manifest` and an `AnnotationList` that describes the METS and ALTO files for the DSpace item, including URLs for retrieving the files from DSpace. The METS file provides the structure of the document, including the sequence of ALTO OCR files. This information is used to retrieve and post ALTO files to the Solr plugin for indexing, in page order. The ALTO files are also preprocessed and written to disk as required by the Solr plugin.
 
 This service must run on the same file system as Solr.
 
