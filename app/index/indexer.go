@@ -6,17 +6,15 @@ import (
 	"errors"
 	"io"
 	"log"
-	"net/http"
 )
 
 type Indexer interface {
 	IndexerAction(settings *Configuration, uuid *string) error
 }
 
-type AddItem struct {}
+type AddItem struct{}
 
-type DeleteItem struct {}
-
+type DeleteItem struct{}
 
 func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 	log.Println("in indexer with ")
@@ -46,11 +44,10 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 }
 
 func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string) error {
-
 	return nil
-
 }
 
+// Gets alto file names from mets file.
 func getAltoFiles(annotationsMap map[string]string) ([]string, error) {
 	metsReader, err := getMetsXml(annotationsMap["mets.xml"])
 	if err != nil {
@@ -60,7 +57,7 @@ func getAltoFiles(annotationsMap map[string]string) ([]string, error) {
 	return altoFiles, nil
 }
 
-
+// Collects and returns alto file names from the provided mets file reader.
 func getOcrFileNames(metsReader io.Reader) []string {
 	var fileNames = make([]string, 50)
 	parser := xml.NewDecoder(metsReader)
@@ -86,7 +83,7 @@ func getOcrFileNames(metsReader io.Reader) []string {
 				for i := 0; i < len(element.Attr); i++ {
 					if element.Attr[i].Name.Local == "href" {
 						// Allocate more capacity.
-						if altoCounter == cap(fileNames)  {
+						if altoCounter == cap(fileNames) {
 							newFileNames := make([]string, 2*cap(fileNames))
 							copy(newFileNames, fileNames)
 							fileNames = newFileNames
@@ -137,37 +134,4 @@ func unMarshallAnnotationList(bytes []byte) (ResourceAnnotationList, error) {
 		return annotations, errorMessage
 	}
 	return annotations, nil
-}
-
-func getManifest(host string, uuid string) ([]byte, error) {
-	endpoint := getApiEndpoint(host, uuid, "manifest")
-	log.Println(endpoint)
-	resp, err := http.Get(endpoint)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, err
-}
-
-func getAnnotationList(id string) []byte {
-	resp, err := http.Get(id)
-	if err != nil {
-		log.Println(err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println(err)
-	}
-	return body
-
-}
-
-func getApiEndpoint(host string, uuid string, iiiftype string) string {
-	return host + "/iiif/" + uuid + "/" + iiiftype
 }
