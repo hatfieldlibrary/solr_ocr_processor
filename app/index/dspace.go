@@ -14,10 +14,14 @@ func getApiEndpoint(host string, uuid string, iiiftype string) string {
 // Fetches manifest from dspace
 func getManifest(host string, uuid string) ([]byte, error) {
 	endpoint := getApiEndpoint(host, uuid, "manifest")
-	log.Println(endpoint)
+
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		errorMessage := UnProcessableEntity{"could not retrieve manifest. Status:  " + resp.Status}
+		return nil, errorMessage
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -28,17 +32,21 @@ func getManifest(host string, uuid string) ([]byte, error) {
 }
 
 // Fetches the annotation list from dspace
-func getAnnotationList(id string) []byte {
+func getAnnotationList(id string) ([]byte, error) {
 	resp, err := http.Get(id)
 	if err != nil {
 		log.Println(err)
+	}
+	if resp.StatusCode != 200 {
+		errorMessage := UnProcessableEntity{"could not retrieve annotations. Status:  " + resp.Status}
+		return nil, errorMessage
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
 	}
-	return body
+	return body, nil
 
 }
 
@@ -47,6 +55,10 @@ func getMetsXml(url string) (io.Reader, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		errorMessage := UnProcessableEntity{"could not retrieve mets xml. Status:  " + resp.Status}
+		return nil, errorMessage
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -58,16 +70,18 @@ func getMetsXml(url string) (io.Reader, error) {
 
 // Fetches an alto file from DSpace
 func getAltoXml(url string) (string, error) {
-
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
+	}
+	if resp.StatusCode != 200 {
+		errorMessage := UnProcessableEntity{"could not retrieve alto xml. Status:  " + resp.Status}
+		return "", errorMessage
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
-
 	return string(body), err
 }

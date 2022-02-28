@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
-	"log"
 )
 
 type Indexer interface {
@@ -17,7 +16,6 @@ type AddItem struct{}
 type DeleteItem struct{}
 
 func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
-	log.Println("in indexer with ")
 	manifestJson, err := getManifest(settings.DSpaceHost, *uuid)
 	if err != nil {
 		return err
@@ -26,21 +24,37 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 	if err != nil {
 		return err
 	}
-	annotations, err := unMarshallAnnotationList(getAnnotationList(manifest.SeeAlso.Id))
+	annotationListJson, err := getAnnotationList(manifest.SeeAlso.Id)
+	if err != nil {
+		return err
+	}
+	annotations, err := unMarshallAnnotationList(annotationListJson)
 	if err != nil {
 		return err
 	}
 	annotationsMap := createAnnotationMap(annotations.Resources)
+	if len(annotationsMap) == 0 {
+		errorMessage := UnProcessableEntity{"no annotations exist for this item, nothing to process"}
+		return errorMessage
+	}
 	altoFiles, err := getAltoFiles(annotationsMap)
 	if err != nil {
 		return err
 	}
-	err = indexFiles(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
-	if err != nil {
-		return err
-	}
-	return nil
 
+	if settings.FileFormat == "alto" {
+		err = processAlto(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		var err = processMiniOcr(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 }
 
 func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string) error {
@@ -107,6 +121,7 @@ func getOcrFileNames(metsReader io.Reader) []string {
 
 }
 
+// Creates a map with the label (key) and resource id (value)
 func createAnnotationMap(annotations []ResourceAnnotation) map[string]string {
 
 	annotationMap := make(map[string]string)
