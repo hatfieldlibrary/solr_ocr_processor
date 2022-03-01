@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"strconv"
 	"strings"
 )
 
-func indexFiles(uuid string, annotationsMap map[string]string, altoFiles []string,
+func processAlto(uuid string, annotationsMap map[string]string, altoFiles []string,
 	manifestId string, settings Configuration) error {
 	for i := 0; i < len(altoFiles); i++ {
 		if len(altoFiles[i]) > 0 {
@@ -24,35 +23,22 @@ func indexFiles(uuid string, annotationsMap map[string]string, altoFiles []strin
 				if err != nil {
 					return err
 				}
-				escapedAlto := escapeAlto(updatedAlto)
-				err = postToSolr(uuid, altoFiles[i], escapedAlto, manifestId, settings)
-				if err != nil {
-					return errors.New("solr indexing failed: " + err.Error())
+				escapedAlto := convertToAscii(updatedAlto)
+				if settings.IndexType == "lazy" {
+					err = postToSolrLazyLoad(uuid, altoFiles[i], escapedAlto, manifestId, settings)
+					if err != nil {
+						return errors.New("solr indexing failed: " + err.Error())
+					}
+				} else {
+					err = postToSolr(uuid, altoFiles[i], escapedAlto, manifestId, settings)
+					if err != nil {
+						return errors.New("solr indexing failed: " + err.Error())
+					}
 				}
 			}
 		}
 	}
 	return nil
-}
-
-func escapeAlto(alto *string) *string {
-
-	var sb strings.Builder
-	for _, runeValue := range *alto {
-		if runeValue > 127 {
-			sb.WriteString(convertRune(runeValue))
-		} else {
-			sb.WriteString(string(runeValue))
-		}
-	}
-	escapedAlto := sb.String()
-	return &escapedAlto
-}
-
-func convertRune(rune rune) string {
-	newValue := fmt.Sprint(rune)
-	ref := "&#" + newValue +";"
-	return ref
 }
 
 func setAltoId(alto *string, position int) (*string, error) {
@@ -74,7 +60,6 @@ func setAltoId(alto *string, position int) (*string, error) {
 		switch t := token.(type) {
 		case xml.StartElement:
 			if t.Name.Local == "Page" {
-
 				var page Page
 				if err = decoder.DecodeElement(&page, &t); err != nil {
 					log.Fatal(err)
@@ -89,94 +74,10 @@ func setAltoId(alto *string, position int) (*string, error) {
 				}
 				continue
 			}
-			if t.Name.Local == "Description"{
-				continue
-			}
-			if t.Name.Local == "Styles"{
-				continue
-			}
-			if t.Name.Local == "MeasurementUnit"{
-				continue
-			}
-			if t.Name.Local == "fileName"{
-				continue
-			}
-			if t.Name.Local == "sourceImageInformation"{
-				continue
-			}
-			if t.Name.Local == "OCRProcessing"{
-				continue
-			}
-			if t.Name.Local == "ocrProcessingStep"{
-				continue
-			}
-			if t.Name.Local == "processingDateTime"{
-				continue
-			}
-			if t.Name.Local == "processingSoftware"{
-				continue
-			}
-			if t.Name.Local == "softwareCreator"{
-				continue
-			}
-			if t.Name.Local == "softwareName"{
-				continue
-			}
-			if t.Name.Local == "softwareVersion"{
-				continue
-			}
-			if t.Name.Local == "ParagraphStyle"{
-				continue
-			}
-			if err := encoder.EncodeToken(xml.CopyToken(t)); err != nil {
-					log.Fatal(err)
-			}
-
-		case xml.EndElement:
-			if t.Name.Local == "Description"{
-				continue
-			}
-			if t.Name.Local == "Styles"{
-				continue
-			}
-			if t.Name.Local == "MeasurementUnit"{
-				continue
-			}
-			if t.Name.Local == "fileName"{
-				continue
-			}
-			if t.Name.Local == "sourceImageInformation"{
-				continue
-			}
-			if t.Name.Local == "OCRProcessing"{
-				continue
-			}
-			if t.Name.Local == "ocrProcessingStep"{
-				continue
-			}
-			if t.Name.Local == "processingDateTime"{
-				continue
-			}
-			if t.Name.Local == "processingSoftware"{
-				continue
-			}
-			if t.Name.Local == "softwareCreator"{
-				continue
-			}
-			if t.Name.Local == "softwareName"{
-				continue
-			}
-			if t.Name.Local == "softwareVersion"{
-				continue
-			}
-			if t.Name.Local == "ParagraphStyle"{
-				continue
-			}
 			if err := encoder.EncodeToken(xml.CopyToken(t)); err != nil {
 				log.Fatal(err)
 			}
 		}
-
 	}
 
 	// must call flush, otherwise some elements will be missing
@@ -187,4 +88,3 @@ func setAltoId(alto *string, position int) (*string, error) {
 	return &out, nil
 
 }
-

@@ -1,26 +1,34 @@
-# Solr Word Highlight Indexer
+# Alto Indexer
 
-Note: This documentation is no longer accurate. 
+This is an early release for testing.
 
-This prototype works with a proposed DSpace 7 IIIF implementation that is currently under review: https://github.com/DSpace/DSpace/pull/3210.  
+## Processing DSpace IIIF Records for Search API Requests 
+This service pre-processes METS/ALTO files for indexing by the solr-ocrhighlighting Solr plugin. That plugin is maintained by the MDZ Digital Library team: https://github.com/dbmdz/solr-ocrhighlighting.
 
-Requires this Solr plugin from the MDZ Digital Library team: https://github.com/dbmdz/solr-ocrhighlighting.
+The service takes the DSpace Item ID as an HTTP request parameter. 
 
-The Go program runs on the same file system as the Solr index. It retrieves METS and ALTO files from DSpace,
- using the IIIF manifest's seeAlso AnnotationList. ALTO files are retrieved from DSpace and 
-pre-processed before indexing by Solr. 
+It retrieves the IIIF `Manifest` and an `AnnotationList` that the references METS and ALTO files for the DSpace item. 
 
-```  
-Usage:
+The METS file provides the sequence of ALTO OCR files. This information is used to retrieve the ALTO files from DSpace,
+process the files, and POST them to the 
+Solr plugin for indexing. If lazy loading, files are also written to disk. When lazy loading, the Solr service 
+MUST be able to access the shared file system.
 
-  -action string
-        the action to perform (e.g. add)
-  -config string
-        path to the directory that contains your config.yaml file (default "./configs")
-  -item string
-        the dspace item uuid
-        
-  Example: ./altoindexer -action=add -config=/home/user -item=f3b10302-xxxx-xxxx-xxxx-3cc3ea89b366
-```
-This starter implementation processes single items retrieved via their DSpace Item id.  It will need to called by 
-a parent process that monitors DSpace Collections and syncs the Solr index as Items are added.
+## Installation
+
+A download for distribution will be provided soon. In the meantime, a Docker container is available for early testing.
+
+`docker pull mspalti/altoindexer:latest`
+
+To run the container:
+
+`docker run -d --network host -v /host/path/to/configs:/app/configs -v /host/path/to/logs:/app/logs -v /path/escaped/alto/files:/var/escaped_alto_files mspalti/altoindexer`
+
+## Usage
+
+Currently, only "add" operations are supported. The service will soon support search and deletion. At this time the only supported method is GET but POST and DELETE methods are planned.  
+
+`http://<host>:3000/413065ef-e242-4d0e-867d-8e2f6486be56/add`
+
+
+

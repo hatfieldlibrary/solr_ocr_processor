@@ -10,7 +10,8 @@ import (
 	"path/filepath"
 )
 
-func postToSolr(uuid string, fileName string, altoFile *string, manifestId string,
+// postToSolrLazyLoad adds to solr index and writes alto file to disk. Alto file will be lazy loaded by the solr plugin
+func postToSolrLazyLoad(uuid string, fileName string, altoFile *string, manifestId string,
 	settings Configuration) error {
 
 	var extension = filepath.Ext(fileName)
@@ -43,5 +44,31 @@ func postToSolr(uuid string, fileName string, altoFile *string, manifestId strin
 
 	return nil
 
+}
 
+// postToSolr add the miniOcr content directly to the solr index. No lazy loading.
+func postToSolr(uuid string, fileName string, miniOcr *string, manifestId string,
+	settings Configuration) error {
+	var extension = filepath.Ext(fileName)
+	solrId := uuid + "-" + fileName[0:len(fileName)-len(extension)]
+	solrPayload := &SolrPost{
+		Id:          solrId,
+		ManifestUrl: manifestId,
+		OcrText:     *miniOcr}
+	payloadBuf := new(bytes.Buffer)
+	enc := json.NewEncoder(payloadBuf)
+	enc.SetEscapeHTML(false)
+	enc.Encode(solrPayload)
+	solrUrl := fmt.Sprintf("%s/%s/update/json/docs", settings.SolrUrl, settings.SolrCore)
+
+	req, err := http.NewRequest("POST", solrUrl, payloadBuf)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return errors.New("could not post to solr file")
+	}
+	defer resp.Body.Close()
+	return nil
 }
