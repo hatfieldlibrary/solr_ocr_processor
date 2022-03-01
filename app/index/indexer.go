@@ -5,21 +5,17 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
-	"log"
-	"net/http"
 )
 
 type Indexer interface {
 	IndexerAction(settings *Configuration, uuid *string) error
 }
 
-type AddItem struct {}
+type AddItem struct{}
 
-type DeleteItem struct {}
-
+type DeleteItem struct{}
 
 func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
-	log.Println("in indexer with ")
 	manifestJson, err := getManifest(settings.DSpaceHost, *uuid)
 	if err != nil {
 		return err
@@ -28,29 +24,44 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 	if err != nil {
 		return err
 	}
-	annotations, err := unMarshallAnnotationList(getAnnotationList(manifest.SeeAlso.Id))
+	annotationListJson, err := getAnnotationList(manifest.SeeAlso.Id)
+	if err != nil {
+		return err
+	}
+	annotations, err := unMarshallAnnotationList(annotationListJson)
 	if err != nil {
 		return err
 	}
 	annotationsMap := createAnnotationMap(annotations.Resources)
+	if len(annotationsMap) == 0 {
+		errorMessage := UnProcessableEntity{"no annotations exist for this item, nothing to process"}
+		return errorMessage
+	}
 	altoFiles, err := getAltoFiles(annotationsMap)
 	if err != nil {
 		return err
 	}
-	err = indexFiles(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
-	if err != nil {
-		return err
-	}
-	return nil
 
+	if settings.FileFormat == "alto" {
+		err = processAlto(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		var err = processMiniOcr(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 }
 
 func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string) error {
-
 	return nil
-
 }
 
+// Gets alto file names from mets file.
 func getAltoFiles(annotationsMap map[string]string) ([]string, error) {
 	metsReader, err := getMetsXml(annotationsMap["mets.xml"])
 	if err != nil {
@@ -60,7 +71,7 @@ func getAltoFiles(annotationsMap map[string]string) ([]string, error) {
 	return altoFiles, nil
 }
 
-
+// Collects and returns alto file names from the provided mets file reader.
 func getOcrFileNames(metsReader io.Reader) []string {
 	var fileNames = make([]string, 50)
 	parser := xml.NewDecoder(metsReader)
@@ -86,7 +97,7 @@ func getOcrFileNames(metsReader io.Reader) []string {
 				for i := 0; i < len(element.Attr); i++ {
 					if element.Attr[i].Name.Local == "href" {
 						// Allocate more capacity.
-						if altoCounter == cap(fileNames)  {
+						if altoCounter == cap(fileNames) {
 							newFileNames := make([]string, 2*cap(fileNames))
 							copy(newFileNames, fileNames)
 							fileNames = newFileNames
@@ -110,6 +121,7 @@ func getOcrFileNames(metsReader io.Reader) []string {
 
 }
 
+// Creates a map with the label (key) and resource id (value)
 func createAnnotationMap(annotations []ResourceAnnotation) map[string]string {
 
 	annotationMap := make(map[string]string)
@@ -137,37 +149,4 @@ func unMarshallAnnotationList(bytes []byte) (ResourceAnnotationList, error) {
 		return annotations, errorMessage
 	}
 	return annotations, nil
-}
-
-func getManifest(host string, uuid string) ([]byte, error) {
-	endpoint := getApiEndpoint(host, uuid, "manifest")
-	log.Println(endpoint)
-	resp, err := http.Get(endpoint)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, err
-}
-
-func getAnnotationList(id string) []byte {
-	resp, err := http.Get(id)
-	if err != nil {
-		log.Println(err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println(err)
-	}
-	return body
-
-}
-
-func getApiEndpoint(host string, uuid string, iiiftype string) string {
-	return host + "/iiif/" + uuid + "/" + iiiftype
 }
