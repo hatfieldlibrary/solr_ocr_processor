@@ -2,7 +2,7 @@ FROM golang:1.16
 
 EXPOSE 3000
 
-WORKDIR /app
+WORKDIR /indexer
 
 ARG LOG_DIR=./logs
 ARG CONFIG_DIR=./configs

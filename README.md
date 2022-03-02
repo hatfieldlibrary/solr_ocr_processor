@@ -1,4 +1,4 @@
-# Alto Indexer
+1# Alto Indexer
 
 This is an early release for testing.
 
@@ -22,7 +22,7 @@ A download for distribution will be provided soon. In the meantime, a Docker con
 
 To run the container:
 
-`docker run -d --network host -v /host/path/to/configs:/app/configs -v /host/path/to/logs:/app/logs -v /path/escaped/alto/files:/var/escaped_alto_files mspalti/altoindexer`
+`docker run -d --network host -v /host/path/to/configs:/indexer/configs -v /host/path/to/logs:/indexer/logs -v /path/escaped/alto/files:/var/escaped_alto_files mspalti/altoindexer`
 
 ## Usage
 
