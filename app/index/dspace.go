@@ -69,19 +69,20 @@ func getMetsXml(url string) (io.Reader, error) {
 }
 
 // Fetches an alto file from DSpace
-func getAltoXml(url string) (string, error) {
+func getAltoXml(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if resp.StatusCode != 200 {
 		errorMessage := UnProcessableEntity{"could not retrieve alto xml. Status:  " + resp.Status}
-		return "", errorMessage
+		return nil, errorMessage
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(body), err
+	// return string(body), err
+	return body, err
 }

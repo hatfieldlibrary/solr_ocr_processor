@@ -14,13 +14,15 @@ import (
 // container volume. If you are running this
 // locally or not using a container, make
 // this a relative path.
-// const configFilePath = "./configs"
+//const configFilePath = "./configs"
+
 const configFilePath = "/indexer/configs"
 
 // This absolute path is the container mount point for the log
 // directory. If you change it during development be sure
 // to revert to this path before pushing a container image.
-// const logDirectory = "./logs"
+//const logDirectory = "./logs"
+
 const logDirectory = "/indexer/logs"
 
 func config() (*Configuration, error) {

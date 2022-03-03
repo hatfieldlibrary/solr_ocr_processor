@@ -19,7 +19,8 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 				return err
 			}
 			if len(alto) != 0 {
-				var result, err = convert(&alto, i)
+				altoStr := string(alto)
+				var result, err = convert(&altoStr, i)
 				if err != nil {
 					return err
 				} else {
@@ -69,9 +70,12 @@ func convert(alto *string, position int) (*string, error) {
 
 		case xml.StartElement:
 			if t.Name.Local == "Page" {
+				height := t.Attr[2].Value
+				width := t.Attr[3].Value
+				dims := width + " " + height
 				textBlockElements = nil
 				pageId := "Page." + strconv.Itoa(position)
-				page := &P{Id: pageId}
+				page := &P{Id: pageId, Dimensions: dims}
 				pageElements = append(pageElements, *page)
 				ocr.Pages = pageElements
 				continue
@@ -125,6 +129,7 @@ func convert(alto *string, position int) (*string, error) {
 	out := string(marshalledXml)
 	// Use single quotes in XML so we submit as json
 	out = strings.ReplaceAll(out, "\"", "'")
-	result := convertToAscii(&out)
-	return result, nil
+	out = xml.Header + out
+	// result := convertToAscii(&out)
+	return &out, nil
 }

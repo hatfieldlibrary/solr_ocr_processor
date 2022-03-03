@@ -84,9 +84,10 @@ type OcrEl struct {
 
 // P MiniOcr page element
 type P struct {
-	XMLName xml.Name `xml:"p"`
-	Id      string   `xml:"http://www.w3.org/XML/1998/namespace id,attr"`
-	Blocks  []B      `xml:"b"`
+	XMLName    xml.Name `xml:"p"`
+	Id         string   `xml:"xml:id,attr"`
+	Dimensions string   `xml:"wh,attr"`
+	Blocks     []B      `xml:"b"`
 }
 
 // B MiniOcr block element
