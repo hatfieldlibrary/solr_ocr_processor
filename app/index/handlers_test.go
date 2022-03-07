@@ -37,7 +37,6 @@ func TestHandleAction(t *testing.T) {
 		SolrCore:        "",
 		XmlFileLocation: "",
 		HttpPort:        "",
-		LogDir:          "",
 	}
 
 	// test add

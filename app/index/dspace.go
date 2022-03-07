@@ -75,6 +75,7 @@ func getAltoXml(url string) ([]byte, error) {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
+		println("can't retrieve file")
 		errorMessage := UnProcessableEntity{"could not retrieve alto xml. Status:  " + resp.Status}
 		return nil, errorMessage
 	}

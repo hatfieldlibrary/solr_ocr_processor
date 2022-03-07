@@ -13,7 +13,7 @@ type Configuration struct {
 	IndexType       string
 	XmlFileLocation string
 	HttpPort        string
-	LogDir          string
+	LogDir		    string
 }
 
 type SolrPost struct {

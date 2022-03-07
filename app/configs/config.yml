@@ -15,10 +15,9 @@ index_type:
   "full"
 xml_file_location:
   # file path used for lazy index
-  "/Users/michaelspalti/alto_transformed_solr"
+  "/path/to/ocr"
 http_port:
   # port used by this service
   "3000"
 log_dir:
-  # mount point for the container volume.
   "./logs"

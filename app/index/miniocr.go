@@ -27,6 +27,7 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 					if settings.IndexType == "full" {
 						var err = postToSolr(uuid, altoFiles[i], result, manifestId, settings)
 						if err != nil {
+							println(err.Error())
 							return errors.New("solr indexing failed: " + err.Error())
 						}
 					} else {
@@ -69,6 +70,7 @@ func convert(alto *string, position int) (*string, error) {
 		switch t := token.(type) {
 
 		case xml.StartElement:
+
 			if t.Name.Local == "Page" {
 				height := t.Attr[2].Value
 				width := t.Attr[3].Value
@@ -108,7 +110,7 @@ func convert(alto *string, position int) (*string, error) {
 				width := t.Attr[2]
 				vpos := t.Attr[3]
 				hpos := t.Attr[4]
-				coordinates := height.Value + " " + width.Value + " " + vpos.Value + " " + hpos.Value
+				coordinates := hpos.Value + " " + vpos.Value + " " + width.Value + " " + height.Value
 				wordElement := W{CoorinateAttr: coordinates, Content: content.Value + " "}
 				lastPage := &ocr.Pages[len(ocr.Pages)-1]
 				lastBlock := &lastPage.Blocks[len(textBlockElements)-1]

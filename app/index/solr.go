@@ -38,7 +38,7 @@ func postToSolrLazyLoad(uuid string, fileName string, altoFile *string, manifest
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.New("could not post to solr file")
+		return errors.New("could not post to solr: " + err.Error())
 	}
 	defer resp.Body.Close()
 
@@ -67,7 +67,7 @@ func postToSolr(uuid string, fileName string, miniOcr *string, manifestId string
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.New("could not post to solr file")
+		return errors.New("could not post to solr file: " + err.Error())
 	}
 	defer resp.Body.Close()
 	return nil

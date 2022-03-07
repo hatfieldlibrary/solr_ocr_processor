@@ -13,17 +13,9 @@ import (
 // This absolute path is the mount point for the
 // container volume. If you are running this
 // locally or not using a container, make
-// this a relative path.
-//const configFilePath = "./configs"
-
-const configFilePath = "/indexer/configs"
-
-// This absolute path is the container mount point for the log
-// directory. If you change it during development be sure
-// to revert to this path before pushing a container image.
-//const logDirectory = "./logs"
-
-const logDirectory = "/indexer/logs"
+// this a relative path to the local directory.
+//const configFilePath = "/indexer/configs"
+const configFilePath = "./configs"
 
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
@@ -99,27 +91,28 @@ func handleError(err error, response http.ResponseWriter, code int) {
 	}
 }
 
-func getLogFile() (*os.File, error) {
-	path := logDirectory + "/alto_indexer.log"
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE, 0)
+func getLogFile(config *Configuration) (*os.File, error) {
+	path := config.LogDir + "/alto_indexer.log"
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE, 0666)
 	return file, err
 }
 
 func main() {
+
 	// app configuration
 	config, err := config()
 	if err != nil {
-		log.Println(err)
+		println("Server config is missing: " + err.Error())
 		return
 	}
 
 	// logging
-	file, err := getLogFile()
+	file, err := getLogFile(config)
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	log.SetOutput(file)
+
 
 	// set up the server and handler(s)
 	mux := http.NewServeMux()

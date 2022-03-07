@@ -19,7 +19,8 @@ func processAlto(uuid string, annotationsMap map[string]string, altoFiles []stri
 				return errors.New("could not retrieve alto file from dspace")
 			}
 			if len(alto) != 0 {
-				updatedAlto, err := setAltoId(&alto, i)
+				altoString := string(alto)
+				updatedAlto, err := setAltoId(&altoString, i)
 				if err != nil {
 					return err
 				}
