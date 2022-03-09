@@ -1,26 +1,17 @@
 package index
 
 import (
-	"fmt"
-	"strings"
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
+	"unicode"
 )
 
-func convertToAscii(input *string) *string {
 
-	var sb strings.Builder
-	for _, runeValue := range *input {
-		if runeValue > 127 {
-			sb.WriteString(convertRune(runeValue))
-		} else {
-			sb.WriteString(string(runeValue))
-		}
+func ToAscii(str string) (string, error) {
+	result, _, err := transform.String(transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn))), str)
+	if err != nil {
+		return "", err
 	}
-	escapedAlto := sb.String()
-	return &escapedAlto
-}
-
-func convertRune(rune rune) string {
-	newValue := fmt.Sprint(rune)
-	ref := "&#" + newValue + ";"
-	return ref
+	return result, nil
 }

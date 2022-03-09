@@ -27,7 +27,6 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 					if settings.IndexType == "full" {
 						var err = postToSolr(uuid, altoFiles[i], result, manifestId, settings)
 						if err != nil {
-							println(err.Error())
 							return errors.New("solr indexing failed: " + err.Error())
 						}
 					} else {
@@ -45,7 +44,6 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 
 // convert creates miniOcr output from the ALTO input.
 func convert(alto *string, position int) (*string, error) {
-	alto = convertToAscii(alto)
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
 
@@ -110,8 +108,13 @@ func convert(alto *string, position int) (*string, error) {
 				width := t.Attr[2]
 				vpos := t.Attr[3]
 				hpos := t.Attr[4]
+				escapedContent, err := ToAscii(content.Value)
+				println(escapedContent)
+				if err != nil {
+					log.Println("Unable to convert character to ascii: " + content.Value)
+				}
 				coordinates := hpos.Value + " " + vpos.Value + " " + width.Value + " " + height.Value
-				wordElement := W{CoorinateAttr: coordinates, Content: content.Value + " "}
+				wordElement := W{CoorinateAttr: coordinates, Content: escapedContent + " "}
 				lastPage := &ocr.Pages[len(ocr.Pages)-1]
 				lastBlock := &lastPage.Blocks[len(textBlockElements)-1]
 				currentLine := &lastBlock.Lines[len(lineElements)-1]

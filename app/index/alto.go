@@ -24,14 +24,13 @@ func processAlto(uuid string, annotationsMap map[string]string, altoFiles []stri
 				if err != nil {
 					return err
 				}
-				escapedAlto := convertToAscii(updatedAlto)
 				if settings.IndexType == "lazy" {
-					err = postToSolrLazyLoad(uuid, altoFiles[i], escapedAlto, manifestId, settings)
+					err = postToSolrLazyLoad(uuid, altoFiles[i], updatedAlto, manifestId, settings)
 					if err != nil {
 						return errors.New("solr indexing failed: " + err.Error())
 					}
 				} else {
-					err = postToSolr(uuid, altoFiles[i], escapedAlto, manifestId, settings)
+					err = postToSolr(uuid, altoFiles[i], updatedAlto, manifestId, settings)
 					if err != nil {
 						return errors.New("solr indexing failed: " + err.Error())
 					}
@@ -71,6 +70,20 @@ func setAltoId(alto *string, position int) (*string, error) {
 
 				t.Attr = t.Attr[:0]
 				if err = encoder.EncodeElement(page, t); err != nil {
+					log.Fatal(err)
+				}
+				continue
+			}
+			if t.Name.Local == "String" {
+				var content String
+				if err = decoder.DecodeElement(&content, &t); err != nil {
+					log.Fatal(err)
+				}
+				content.CONTENT, err = ToAscii(content.CONTENT)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if err = encoder.EncodeElement(content, t); err != nil {
 					log.Fatal(err)
 				}
 				continue
