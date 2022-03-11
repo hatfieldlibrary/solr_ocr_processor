@@ -71,6 +71,10 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 }
 
 func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string) error {
+	err := deleteFromSolr(*settings, *uuid)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

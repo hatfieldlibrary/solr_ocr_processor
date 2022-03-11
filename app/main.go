@@ -14,8 +14,8 @@ import (
 // container volume. If you are running this
 // locally or not using a container, make
 // this a relative path to the local directory.
- const configFilePath = "/indexer/configs"
-// const configFilePath = "./configs"
+// const configFilePath = "/indexer/configs"
+ const configFilePath = "./configs"
 
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
@@ -55,13 +55,15 @@ func indexingHandler(config *Configuration) http.HandlerFunc {
 		// add and delete actions
 		var idx Indexer
 		if request.Method == "GET" {
-			idx = GetItem{}}
+			idx = GetItem{}
+		}
 		if request.Method == "POST" {
 			idx = AddItem{}
 		}
 		if request.Method == "DELETE" {
 			idx = DeleteItem{}
 		}
+
 		if idx != nil {
 			err := HandleAction(idx, config, &itemId)
 			if err != nil {

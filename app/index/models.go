@@ -16,12 +16,6 @@ type Configuration struct {
 	LogDir		    string
 }
 
-type SolrPost struct {
-	Id          string `json:"id"`
-	ManifestUrl string `json:"manifest_url"`
-	OcrText     string `json:"ocr_text"`
-}
-
 type SolrField struct {
 	XMLName xml.Name `xml:"field"`
 	Name    string   `xml:"name,attr"`
@@ -42,7 +36,7 @@ type Page struct {
 	PrintSpace    string `xml:"PrintSpace"`
 }
 
-// ComposedBlock Alto composed block element (not always present, contains TextBlock elements)
+// PrintSpace Alto composed block element (not always present, contains TextBlock elements)
 type PrintSpace struct {
 	TextBlock     []TextBlock     `xml:"TextBlock"`
 	ComposedBlock []ComposedBlock `xml:"ComposedBlock"`
@@ -71,10 +65,6 @@ type String struct {
 	VPOS    string `xml:"VPOS,attr"`
 	HPOS    string `xml:"HPOS,attr"`
 }
-
-//type RootEl struct {
-//	ocrEl OcrEl `xml:"ocr"`
-//}
 
 // OcrEl MiniOcr base element
 type OcrEl struct {
@@ -218,5 +208,20 @@ type SolrResponse struct {
 }
 
 type Docs struct {
-	ManifestUrl []string `json:"manifest_url"`
+	ManifestUrl []string `json:"manifest_url,omitempty"`
+	OcrText string `json:"ocr_text,omitempty"`
+}
+
+type SolrCreatePost struct {
+	Id          string `json:"id"`
+	ManifestUrl string `json:"manifest_url"`
+	OcrText     string `json:"ocr_text"`
+}
+
+type SolrDeletePost struct {
+	Delete Delete  `json:"delete"`
+}
+
+type Delete struct {
+	Query string `json:"query"`
 }
