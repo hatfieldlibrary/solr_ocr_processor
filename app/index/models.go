@@ -203,3 +203,20 @@ type ResourceAnnotationResource struct {
 	Label  string `json:"label"`
 	Format string `json:"format"`
 }
+
+type SolrResponse struct {
+	ResponseHeader struct {
+		Status int `json:"status"`
+		QTime  int `json:"QTime"`
+	} `json:"responseHeader"`
+	Response struct {
+		NumFound      int           `json:"numFound"`
+		Start         int           `json:"start"`
+		NumFoundExact bool          `json:"numFoundExact"`
+		Docs          []Docs 		`json:"docs"`
+	} `json:"response"`
+}
+
+type Docs struct {
+	ManifestUrl []string `json:"manifest_url"`
+}

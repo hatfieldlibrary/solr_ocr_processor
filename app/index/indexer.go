@@ -11,9 +11,22 @@ type Indexer interface {
 	IndexerAction(settings *Configuration, uuid *string) error
 }
 
+type GetItem struct{}
+
 type AddItem struct{}
 
 type DeleteItem struct{}
+
+func (axn GetItem) IndexerAction(settings *Configuration, uuid *string) error {
+	exists, err := checkSolr(*settings, *uuid)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return NotFound{ID: *uuid}
+	}
+	return nil
+}
 
 func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 	manifestJson, err := getManifest(settings.DSpaceHost, *uuid)

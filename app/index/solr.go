@@ -7,8 +7,36 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path/filepath"
 )
+
+func checkSolr (settings Configuration, uuid string) (bool, error) {
+	manifestUrl := getApiEndpoint(settings.DSpaceHost, uuid, "manifest")
+
+	solrUrl := fmt.Sprintf("%s/%s/select?fl=manifest_url&q=manifest_url:%s",
+		settings.SolrUrl, settings.SolrCore, url.QueryEscape("\"" + manifestUrl + "\""))
+	payloadBuf := new(bytes.Buffer)
+	req, err := http.NewRequest("GET", solrUrl, payloadBuf)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, errors.New("could not query solr: " + err.Error())
+	}
+	defer resp.Body.Close()
+
+	solrResponse := SolrResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&solrResponse)
+	if err != nil {
+		return false, err
+	}
+	if solrResponse.Response.NumFound > 0 {
+		return true, nil
+	}
+	return false, nil
+}
 
 // postToSolrLazyLoad adds to solr index and writes alto file to disk. Alto file will be lazy loaded by the solr plugin
 func postToSolrLazyLoad(uuid string, fileName string, altoFile *string, manifestId string,
@@ -60,7 +88,7 @@ func postToSolr(uuid string, fileName string, miniOcr *string, manifestId string
 	enc.SetEscapeHTML(false)
 	enc.Encode(solrPayload)
 	solrUrl := fmt.Sprintf("%s/%s/update/json/docs", settings.SolrUrl, settings.SolrCore)
-
+	println(solrUrl)
 	req, err := http.NewRequest("POST", solrUrl, payloadBuf)
 	req.Header.Set("Content-Type", "application/json")
 

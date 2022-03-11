@@ -109,7 +109,6 @@ func convert(alto *string, position int) (*string, error) {
 				vpos := t.Attr[3]
 				hpos := t.Attr[4]
 				escapedContent, err := ToAscii(content.Value)
-				println(escapedContent)
 				if err != nil {
 					log.Println("Unable to convert character to ascii: " + content.Value)
 				}

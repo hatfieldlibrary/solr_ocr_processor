@@ -14,7 +14,7 @@ import (
 // container volume. If you are running this
 // locally or not using a container, make
 // this a relative path to the local directory.
-const configFilePath = "/indexer/configs"
+ const configFilePath = "/indexer/configs"
 // const configFilePath = "./configs"
 
 func config() (*Configuration, error) {
@@ -44,22 +44,22 @@ func config() (*Configuration, error) {
 func indexingHandler(config *Configuration) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		pathParams := strings.Split(request.URL.Path, "/")[1:]
-		if !(len(pathParams) >= 3) {
+		if !(len(pathParams) >= 2) {
 			handleError(errors.New("missing parameter"), response, 400)
 			return
 		}
 		itemId := pathParams[1]
-		action := pathParams[2]
 
 		log.Println(itemId)
-		log.Println(action)
 
 		// add and delete actions
 		var idx Indexer
-		if action == "add" {
+		if request.Method == "GET" {
+			idx = GetItem{}}
+		if request.Method == "POST" {
 			idx = AddItem{}
 		}
-		if action == "delete" {
+		if request.Method == "DELETE" {
 			idx = DeleteItem{}
 		}
 		if idx != nil {
@@ -69,6 +69,7 @@ func indexingHandler(config *Configuration) http.HandlerFunc {
 				return
 			}
 		} else {
+			println("oops no param")
 			handleError(errors.New("invalid or missing action"), response, 400)
 			return
 		}
@@ -86,6 +87,8 @@ func handleError(err error, response http.ResponseWriter, code int) {
 		response.WriteHeader(400)
 	case MethodNotAllowed:
 		response.WriteHeader(405)
+	case NotFound:
+		response.WriteHeader(404)
 	default:
 		response.WriteHeader(code)
 	}
@@ -113,13 +116,11 @@ func main() {
 	}
 	log.SetOutput(file)
 
-
 	// set up the server and handler(s)
 	mux := http.NewServeMux()
 	indexer := indexingHandler(config)
 
 	// define routes
-	// TODO implement post and delete
 	mux.Handle("/item/", indexer)
 
 	// listen
