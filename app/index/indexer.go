@@ -5,10 +5,11 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"log"
 )
 
 type Indexer interface {
-	IndexerAction(settings *Configuration, uuid *string) error
+	IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error
 }
 
 type GetItem struct{}
@@ -17,9 +18,10 @@ type AddItem struct{}
 
 type DeleteItem struct{}
 
-func (axn GetItem) IndexerAction(settings *Configuration, uuid *string) error {
+func (axn GetItem) IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error {
 	exists, err := checkSolr(*settings, *uuid)
 	if err != nil {
+		log.Println(err.Error())
 		return err
 	}
 	if !exists {
@@ -28,8 +30,9 @@ func (axn GetItem) IndexerAction(settings *Configuration, uuid *string) error {
 	return nil
 }
 
-func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
-	manifestJson, err := getManifest(settings.DSpaceHost, *uuid)
+func (axn AddItem) IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error {
+	log.Println("Indexing item: " + *uuid)
+	manifestJson, err := getManifest(settings.DSpaceHost, *uuid, log)
 	if err != nil {
 		return err
 	}
@@ -37,7 +40,7 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 	if err != nil {
 		return err
 	}
-	annotationListJson, err := getAnnotationList(manifest.SeeAlso.Id)
+	annotationListJson, err := getAnnotationList(manifest.SeeAlso.Id, log)
 	if err != nil {
 		return err
 	}
@@ -50,19 +53,19 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 		errorMessage := UnProcessableEntity{"no annotations exist for this item, nothing to process"}
 		return errorMessage
 	}
-	altoFiles, err := getAltoFiles(annotationsMap)
+	altoFiles, err := getAltoFiles(annotationsMap, log)
 	if err != nil {
 		return err
 	}
 
 	if settings.FileFormat == "alto" {
-		err = processAlto(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
+		err = processAlto(*uuid, annotationsMap, altoFiles, manifest.Id, *settings, log)
 		if err != nil {
 			return err
 		}
 		return nil
 	} else {
-		var err = processMiniOcr(*uuid, annotationsMap, altoFiles, manifest.Id, *settings)
+		var err = processMiniOcr(*uuid, annotationsMap, altoFiles, manifest.Id, *settings, log)
 		if err != nil {
 			return err
 		}
@@ -70,17 +73,18 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string) error {
 	}
 }
 
-func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string) error {
+func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error {
 	err := deleteFromSolr(*settings, *uuid)
 	if err != nil {
+		log.Println(err.Error())
 		return err
 	}
 	return nil
 }
 
 // Gets alto file names from mets file.
-func getAltoFiles(annotationsMap map[string]string) ([]string, error) {
-	metsReader, err := getMetsXml(annotationsMap["mets.xml"])
+func getAltoFiles(annotationsMap map[string]string, log *log.Logger) ([]string, error) {
+	metsReader, err := getMetsXml(annotationsMap["mets.xml"], log)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +92,7 @@ func getAltoFiles(annotationsMap map[string]string) ([]string, error) {
 	return altoFiles, nil
 }
 
-// Collects and returns alto file names from the provided mets file reader.
+// getOcrFileNames collects and returns alto file names from the provided mets file reader.
 func getOcrFileNames(metsReader io.Reader) []string {
 	var fileNames = make([]string, 50)
 	parser := xml.NewDecoder(metsReader)
@@ -101,33 +105,32 @@ func getOcrFileNames(metsReader io.Reader) []string {
 		}
 		switch t := token.(type) {
 		case xml.StartElement:
-			element := xml.StartElement(t)
-			name := element.Name.Local
+
+			name := t.Name.Local
 			if name == "file" {
-				for i := 0; i < len(element.Attr); i++ {
-					if element.Attr[i].Value == "ocr" {
+				for i := 0; i < len(t.Attr); i++ {
+					if t.Attr[i].Value == "ocr" {
 						ocrFileElement = true
 					}
 				}
 			}
 			if name == "FLocat" && ocrFileElement == true {
-				for i := 0; i < len(element.Attr); i++ {
-					if element.Attr[i].Name.Local == "href" {
+				for i := 0; i < len(t.Attr); i++ {
+					if t.Attr[i].Name.Local == "href" {
 						// Allocate more capacity.
 						if altoCounter == cap(fileNames) {
 							newFileNames := make([]string, 2*cap(fileNames))
 							copy(newFileNames, fileNames)
 							fileNames = newFileNames
 						}
-						fileNames[altoCounter] = element.Attr[i].Value
+						fileNames[altoCounter] = t.Attr[i].Value
 						altoCounter++
 					}
 				}
 			}
 
 		case xml.EndElement:
-			element := xml.EndElement(t)
-			name := element.Name.Local
+			name := t.Name.Local
 			if name == "file" {
 				ocrFileElement = false
 			}
@@ -138,9 +141,8 @@ func getOcrFileNames(metsReader io.Reader) []string {
 
 }
 
-// Creates a map with the label (key) and resource id (value)
+// createAnnotationMap creates a map with the label (key) and resource id (value)
 func createAnnotationMap(annotations []ResourceAnnotation) map[string]string {
-
 	annotationMap := make(map[string]string)
 	for i := 0; i < len(annotations); i++ {
 		value := annotations[i].Resource.Id

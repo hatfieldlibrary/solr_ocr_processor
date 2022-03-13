@@ -11,10 +11,10 @@ import (
 )
 
 func processAlto(uuid string, annotationsMap map[string]string, altoFiles []string,
-	manifestId string, settings Configuration) error {
+	manifestId string, settings Configuration, log *log.Logger) error {
 	for i := 0; i < len(altoFiles); i++ {
 		if len(altoFiles[i]) > 0 {
-			alto, err := getAltoXml(annotationsMap[altoFiles[i]])
+			alto, err := getAltoXml(annotationsMap[altoFiles[i]], log)
 			if err != nil {
 				return errors.New("could not retrieve alto file from dspace")
 			}

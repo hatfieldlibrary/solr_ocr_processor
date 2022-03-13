@@ -11,27 +11,29 @@ import (
 
 // processMiniOcr retrieves individual Alto files from DSpace, converts Alto to MiniOcr and adds to solr index.
 func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []string,
-	manifestId string, settings Configuration) error {
+	manifestId string, settings Configuration, log *log.Logger) error {
 	for i := 0; i < len(altoFiles); i++ {
 		if len(altoFiles[i]) > 0 {
-			alto, err := getAltoXml(annotationsMap[altoFiles[i]])
+			alto, err := getAltoXml(annotationsMap[altoFiles[i]], log)
 			if err != nil {
 				return err
 			}
 			if len(alto) != 0 {
 				altoStr := string(alto)
-				var result, err = convert(&altoStr, i)
+				var result, err = convert(&altoStr, i, log)
 				if err != nil {
 					return err
 				} else {
 					if settings.IndexType == "full" {
 						var err = postToSolr(uuid, altoFiles[i], result, manifestId, settings)
 						if err != nil {
+							log.Println(err.Error())
 							return errors.New("solr indexing failed: " + err.Error())
 						}
 					} else {
 						var err = postToSolrLazyLoad(uuid, altoFiles[i], result, manifestId, settings)
 						if err != nil {
+							log.Println(err.Error())
 							return errors.New("solr indexing failed: " + err.Error())
 						}
 					}
@@ -43,7 +45,7 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 }
 
 // convert creates miniOcr output from the ALTO input.
-func convert(alto *string, position int) (*string, error) {
+func convert(alto *string, position int, log *log.Logger) (*string, error) {
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
 
@@ -127,13 +129,12 @@ func convert(alto *string, position int) (*string, error) {
 	}
 	marshalledXml, err := xml.Marshal(ocr)
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 		return nil, err
 	}
 	out := string(marshalledXml)
 	// Use single quotes in XML so we submit as json
 	out = strings.ReplaceAll(out, "\"", "'")
 	out = xml.Header + out
-	// result := convertToAscii(&out)
 	return &out, nil
 }

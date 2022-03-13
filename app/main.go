@@ -11,11 +11,13 @@ import (
 )
 
 // This absolute path is the mount point for the
-// container volume. If you are running this
-// locally or not using a container, make
-// this a relative path to the local directory.
+// container volume. If you are not running inside a
+// container use a relative path to the local configuration
+// directory.
+// Container mount point:
 // const configFilePath = "/indexer/configs"
- const configFilePath = "./configs"
+// Local configuration directory
+const configFilePath = "./configs"
 
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
@@ -41,7 +43,7 @@ func config() (*Configuration, error) {
 	return &config, nil
 }
 
-func indexingHandler(config *Configuration) http.HandlerFunc {
+func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		pathParams := strings.Split(request.URL.Path, "/")[1:]
 		if !(len(pathParams) >= 2) {
@@ -65,7 +67,7 @@ func indexingHandler(config *Configuration) http.HandlerFunc {
 		}
 
 		if idx != nil {
-			err := HandleAction(idx, config, &itemId)
+			err := HandleAction(idx, config, &itemId, logger)
 			if err != nil {
 				handleError(err, response, 500)
 				return
@@ -98,7 +100,7 @@ func handleError(err error, response http.ResponseWriter, code int) {
 
 func getLogFile(config *Configuration) (*os.File, error) {
 	path := config.LogDir + "/alto_indexer.log"
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE, 0666)
+	file, err := os.OpenFile(path, os.O_RDWR | os.O_APPEND|os.O_CREATE, 0666)
 	return file, err
 }
 
@@ -114,13 +116,16 @@ func main() {
 	// logging
 	file, err := getLogFile(config)
 	if err != nil {
+		println("Log file directory not found: " + err.Error())
 		return
 	}
-	log.SetOutput(file)
+	defer file.Close()
+	logger := log.New(file, "indexer: ", log.LstdFlags)
+
 
 	// set up the server and handler(s)
 	mux := http.NewServeMux()
-	indexer := indexingHandler(config)
+	indexer := indexingHandler(config, logger)
 
 	// define routes
 	mux.Handle("/item/", indexer)
@@ -128,7 +133,7 @@ func main() {
 	// listen
 	serverError := http.ListenAndServe(":"+config.HttpPort, mux)
 	if serverError != nil {
-		log.Fatal(serverError)
+		logger.Fatal(serverError)
 	}
 
 }
