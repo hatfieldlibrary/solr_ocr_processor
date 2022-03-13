@@ -52,8 +52,6 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 		}
 		itemId := pathParams[1]
 
-		log.Println(itemId)
-
 		// add and delete actions
 		var idx Indexer
 		if request.Method == "GET" {
@@ -73,7 +71,7 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 				return
 			}
 		} else {
-			println("oops no param")
+			logger.Println("Missing or invalid processing action.")
 			handleError(errors.New("invalid or missing action"), response, 400)
 			return
 		}
