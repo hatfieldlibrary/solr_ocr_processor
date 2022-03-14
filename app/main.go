@@ -35,6 +35,7 @@ func config() (*Configuration, error) {
 		SolrCore:        viper.GetString("solr_core"),
 		FileFormat:      viper.GetString("file_format"),
 		IndexType:       viper.GetString("index_type"),
+		EscapeUtf8:      viper.GetBool("escape_utf8"),
 		XmlFileLocation: viper.GetString("xml_file_location"),
 		HttpPort:        viper.GetString("http_port"),
 		LogDir:          viper.GetString("log_dir"),

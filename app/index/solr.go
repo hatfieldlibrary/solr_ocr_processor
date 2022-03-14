@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -126,17 +127,18 @@ func checkSolr (settings Configuration, uuid string) (bool, error) {
 
 // postToSolrLazyLoad adds to solr index and writes alto file to disk. Alto file will be lazy loaded by the solr plugin
 func postToSolrLazyLoad(uuid string, fileName string, altoFile *string, manifestId string,
-	settings Configuration) error {
+	settings Configuration, log *log.Logger) error {
 
 	var extension = filepath.Ext(fileName)
 	solrId := uuid + "-" + fileName[0:len(fileName)-len(extension)]
-	path := settings.XmlFileLocation + "/" + solrId + "_escaped.xml"
-
+	path := settings.XmlFileLocation + "/" + solrId + ".xml"
 	err2 := ioutil.WriteFile(path, []byte(*altoFile), 0644)
 	if err2 != nil {
 		return errors.New("could not write escaped alto file")
 	}
-
+	if settings.EscapeUtf8 {
+		path = path + "{ascii}"
+	}
 	solrPostBody := &SolrCreatePost{
 		Id:          solrId,
 		ManifestUrl: manifestId,
@@ -152,7 +154,8 @@ func postToSolrLazyLoad(uuid string, fileName string, altoFile *string, manifest
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.New("could not post to solr: " + err.Error())
+		log.Println(err.Error())
+		return UnProcessableEntity{CAUSE: "Solr update problem. See log."}
 	}
 	defer resp.Body.Close()
 
@@ -162,7 +165,7 @@ func postToSolrLazyLoad(uuid string, fileName string, altoFile *string, manifest
 
 // postToSolr add the miniOcr content directly to the solr index. No lazy loading.
 func postToSolr(uuid string, fileName string, miniOcr *string, manifestId string,
-	settings Configuration) error {
+	settings Configuration, log *log.Logger ) error {
 	var extension = filepath.Ext(fileName)
 	solrId := uuid + "-" + fileName[0:len(fileName)-len(extension)]
 	solrPayload := &SolrCreatePost{
@@ -180,7 +183,8 @@ func postToSolr(uuid string, fileName string, miniOcr *string, manifestId string
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.New("could not post to solr file: " + err.Error())
+		log.Println(err.Error())
+		return UnProcessableEntity{CAUSE: "Solr update problem. See log."}
 	}
 	defer resp.Body.Close()
 	return nil

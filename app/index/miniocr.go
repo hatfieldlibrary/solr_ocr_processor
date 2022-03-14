@@ -20,18 +20,18 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 			}
 			if len(alto) != 0 {
 				altoStr := string(alto)
-				var result, err = convert(&altoStr, i, log)
+				var result, err = convert(&altoStr, i, settings.EscapeUtf8, log)
 				if err != nil {
 					return err
 				} else {
 					if settings.IndexType == "full" {
-						var err = postToSolr(uuid, altoFiles[i], result, manifestId, settings)
+						var err = postToSolr(uuid, altoFiles[i], result, manifestId, settings, log)
 						if err != nil {
 							log.Println(err.Error())
 							return errors.New("solr indexing failed: " + err.Error())
 						}
 					} else {
-						var err = postToSolrLazyLoad(uuid, altoFiles[i], result, manifestId, settings)
+						var err = postToSolrLazyLoad(uuid, altoFiles[i], result, manifestId, settings, log)
 						if err != nil {
 							log.Println(err.Error())
 							return errors.New("solr indexing failed: " + err.Error())
@@ -45,7 +45,7 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 }
 
 // convert creates miniOcr output from the ALTO input.
-func convert(alto *string, position int, log *log.Logger) (*string, error) {
+func convert(alto *string, position int, escapeUtr8 bool, log *log.Logger) (*string, error) {
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
 
@@ -110,17 +110,21 @@ func convert(alto *string, position int, log *log.Logger) (*string, error) {
 				width := t.Attr[2]
 				vpos := t.Attr[3]
 				hpos := t.Attr[4]
-				escapedContent, err := ToAscii(content.Value)
-				if err != nil {
-					log.Println("Unable to convert character to ascii: " + content.Value)
+				var str = ""
+				if escapeUtr8 {
+					str = toXmlCodePoint(content.Value)
+				} else {
+					str = content.Value
 				}
-				coordinates := hpos.Value + " " + vpos.Value + " " + width.Value + " " + height.Value
-				wordElement := W{CoorinateAttr: coordinates, Content: escapedContent + " "}
-				lastPage := &ocr.Pages[len(ocr.Pages)-1]
-				lastBlock := &lastPage.Blocks[len(textBlockElements)-1]
-				currentLine := &lastBlock.Lines[len(lineElements)-1]
-				wordElements = append(wordElements, wordElement)
-				currentLine.Words = wordElements
+				if len(str) > 0 {
+					coordinates := hpos.Value + " " + vpos.Value + " " + width.Value + " " + height.Value
+					wordElement := W{CoorinateAttr: coordinates, Content: str + " "}
+					lastPage := &ocr.Pages[len(ocr.Pages)-1]
+					lastBlock := &lastPage.Blocks[len(textBlockElements)-1]
+					currentLine := &lastBlock.Lines[len(lineElements)-1]
+					wordElements = append(wordElements, wordElement)
+					currentLine.Words = wordElements
+				}
 				continue
 			}
 

@@ -8,16 +8,20 @@ solr_core:
   # the solr core name
   "word_highlighting"
 file_format:
-  # alto or miniocr
+  # The application supports "alto" or "miniocr" formats
   "miniocr"
 index_type:
-  # lazy or full
-  "full"
+  # You can use "lazy" or "full" indexing, see Solr OCR Highlighting documentation for details
+  "lazy"
+escape_utf8:
+  # escape utf8 strings
+  # when "lazy" loading ocr files from disk you can improve performance by converting utf8 to xml-encoded ascii strings.
+  true
 xml_file_location:
-  # file path used for lazy index
-  "/path/to/ocr"
+  # path used for lazy index files. Solr will read ocr files from this directory if "lazy" indexing is used.
+  "/Users/mspalti/escaped_alto"
 http_port:
-  # port used by this service
+  # http port used by this service
   "3000"
 log_dir:
   "./logs"

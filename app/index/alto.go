@@ -20,17 +20,17 @@ func processAlto(uuid string, annotationsMap map[string]string, altoFiles []stri
 			}
 			if len(alto) != 0 {
 				altoString := string(alto)
-				updatedAlto, err := setAltoId(&altoString, i)
+				updatedAlto, err := updateAlto(&altoString, i, settings.EscapeUtf8)
 				if err != nil {
 					return err
 				}
 				if settings.IndexType == "lazy" {
-					err = postToSolrLazyLoad(uuid, altoFiles[i], updatedAlto, manifestId, settings)
+					err = postToSolrLazyLoad(uuid, altoFiles[i], updatedAlto, manifestId, settings, log)
 					if err != nil {
 						return errors.New("solr indexing failed: " + err.Error())
 					}
 				} else {
-					err = postToSolr(uuid, altoFiles[i], updatedAlto, manifestId, settings)
+					err = postToSolr(uuid, altoFiles[i], updatedAlto, manifestId, settings, log)
 					if err != nil {
 						return errors.New("solr indexing failed: " + err.Error())
 					}
@@ -41,7 +41,7 @@ func processAlto(uuid string, annotationsMap map[string]string, altoFiles []stri
 	return nil
 }
 
-func setAltoId(alto *string, position int) (*string, error) {
+func updateAlto(alto *string, position int, escapeUtf8 bool) (*string, error) {
 	var buffer bytes.Buffer
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
@@ -79,9 +79,8 @@ func setAltoId(alto *string, position int) (*string, error) {
 				if err = decoder.DecodeElement(&content, &t); err != nil {
 					log.Fatal(err)
 				}
-				content.CONTENT, err = ToAscii(content.CONTENT)
-				if err != nil {
-					log.Fatal(err)
+				if escapeUtf8 {
+					content.CONTENT = toXmlCodePoint(content.CONTENT)
 				}
 				if err = encoder.EncodeElement(content, t); err != nil {
 					log.Fatal(err)

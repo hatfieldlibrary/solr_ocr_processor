@@ -1,17 +1,32 @@
 package index
 
 import (
-	"golang.org/x/text/runes"
-	"golang.org/x/text/transform"
-	"golang.org/x/text/unicode/norm"
-	"unicode"
+	"fmt"
+	"strings"
+	"unicode/utf8"
 )
 
-
-func ToAscii(str string) (string, error) {
-	result, _, err := transform.String(transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn))), str)
-	if err != nil {
-		return "", err
+// toXmlCodePoint converts non-ascii chars to xml code point, ignoring any non-utf8 encoding
+func toXmlCodePoint(str string) (string) {
+	var sb strings.Builder
+	for _, runeValue := range str {
+		if runeValue > 127 {
+			sb.WriteString(convertRune(runeValue))
+		} else {
+			sb.WriteString(string(runeValue))
+		}
 	}
-	return result, nil
+	escapedStr := sb.String()
+	return escapedStr
+
+}
+
+// convertRune converts rune to XML-escaped codepoint
+func convertRune(rune rune) string {
+	if rune == utf8.RuneError {
+		return ""
+	}
+	codepoint := fmt.Sprint(rune)
+	ref := "&#" + codepoint +";"
+	return ref
 }

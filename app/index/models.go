@@ -11,6 +11,7 @@ type Configuration struct {
 	SolrCore        string
 	FileFormat      string
 	IndexType       string
+	EscapeUtf8      bool
 	XmlFileLocation string
 	HttpPort        string
 	LogDir		    string
