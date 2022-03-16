@@ -77,10 +77,10 @@ POST, DELETE, or GET requests use the identifier of a DSpace Community, Collecti
 ### DSpace command line tool (under development)
 
 **Add:**
-./bin/dspace iiif-search-index --add -e mspalti@willamette.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
+./bin/dspace iiif-search-index --add -e user@dspace.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
 
 **Delete:**
-./bin/dspace iiif-search-index --delet -e mspalti@willamette.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
+./bin/dspace iiif-search-index --delete -e user@dspace.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
 
 
 
