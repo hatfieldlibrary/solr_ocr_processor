@@ -5,6 +5,7 @@ import (
 	. "github.com/mspalti/altoindexer/index"
 	"github.com/spf13/viper"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -38,14 +39,42 @@ func config() (*Configuration, error) {
 		EscapeUtf8:      viper.GetBool("escape_utf8"),
 		XmlFileLocation: viper.GetString("xml_file_location"),
 		HttpPort:        viper.GetString("http_port"),
+		IpWhitelist:     viper.GetStringSlice("ip_whitelist"),
 		LogDir:          viper.GetString("log_dir"),
 	}
 
 	return &config, nil
 }
 
+// checkWhitelist verify that the host is in the whitelist from configuration
+func checkWhitelist(request *http.Request, whitelist []string) bool {
+	ip, _, _ := net.SplitHostPort(request.RemoteAddr)
+	ipString := net.ParseIP(ip).String()
+	var inWhitelist = false
+	println(len(whitelist))
+	if len(whitelist) == 0 {
+		inWhitelist = true
+	}
+	for _, x := range whitelist {
+		if x == ipString {
+			inWhitelist = true
+			break
+		}
+	}
+	return inWhitelist
+}
+
 func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
+		// verify that the remote host is in whitelist
+		inWhitelist := checkWhitelist(request, config.IpWhitelist)
+		if !inWhitelist {
+			handleError(errors.New("request refused because remote address is not in whitelist"),
+				response, 403)
+			return
+		}
+
+		// get the item identifier from the request
 		pathParams := strings.Split(request.URL.Path, "/")[1:]
 		if !(len(pathParams) >= 2) {
 			handleError(errors.New("missing parameter"), response, 400)
@@ -53,7 +82,7 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 		}
 		itemId := pathParams[1]
 
-		// add and delete actions
+		// set action
 		var idx Indexer
 		if request.Method == "GET" {
 			idx = GetItem{}
@@ -78,6 +107,7 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 		}
 		response.WriteHeader(200)
 		return
+
 	}
 }
 

@@ -1,3 +1,10 @@
+http_port:
+  # http port used by this service
+  "3000"
+# IP addresses of whitelisted hosts. If the list is empty, all IP's can access the service.
+# Example: ["127.0.0.1", "192.168.0.1"]
+ip_whitelist:
+  []
 dspace_host:
   # dspace api base (no trailing slash)
   "http://localhost:8080/server"
@@ -9,7 +16,7 @@ solr_core:
   "word_highlighting"
 file_format:
   # The application supports "alto" or "miniocr" formats
-  "miniocr"
+  "alto"
 index_type:
   # You can use "lazy" or "full" indexing, see Solr OCR Highlighting documentation for details
   "lazy"
@@ -20,8 +27,6 @@ escape_utf8:
 xml_file_location:
   # path used for lazy index files. Solr will read ocr files from this directory if "lazy" indexing is used.
   "/Users/mspalti/escaped_alto"
-http_port:
-  # http port used by this service
-  "3000"
+
 log_dir:
   "./logs"
