@@ -65,7 +65,8 @@ Note that you don't need to create a volume for the `/var/ocr_files` mount point
 If using SELinux security you may need to add `:Z` to your mount point paths, e.g. `/indexer/logs:Z`
 
 On MacOS or Windows you can't use the `--network host` option. Instead, change DSpace and Solr URL's in 
-`config.yml` to use the IP address of the host system rather than `localhost`.
+`config.yml` to use the IP address of the host system rather than `localhost`. This appoach works only for "full"
+indexing. 
 
 
 ## Usage
