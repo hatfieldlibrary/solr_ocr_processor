@@ -1,19 +1,18 @@
 
 ## Processing Service for the DSpace IIIF Search API
-This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-ocrhighlighting` Solr plugin. DSpace 
-includes a command line option for processing collections of searchable, IIIF-enabled items.
+This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-ocrhighlighting` Solr plugin. 
 
 **DSpace**: https://wiki.lyrasis.org/display/DSDOC7x
 
 **solr-ocrhighlighting plugin**: https://github.com/dbmdz/solr-ocrhighlighting. 
 
-####The service:
+#### The service:
 * Supports GET, POST, and DELETE
 * For POST's, MiniOcr or ALTO files are added to the index with "full" or "lazy" indexing and optional XML-encoding of Unicode characters.
 * GET requests verify that OCR files have been indexed.
 * DELETE requests remove OCR files from the index and the file system (if "lazy" indexing was used).
 
-####Configuration options:
+#### Configuration options:
 * http_port: listen port of service
 * ip_whitelist: IPs that are allowed access
 * dspace_host: Base URL of the DSpace service
@@ -25,7 +24,7 @@ includes a command line option for processing collections of searchable, IIIF-en
 * xml_file_location: Path to OCR files (when "lazy" indexing used)
 * log_dir: Path to the log directory
 
-####Overview:
+#### Overview:
 The service works in conjunction with the DSpace IIIF integration. When indexing a new item, the service retrieves an
 IIIF `AnnotationList` of METS and ALTO files from the DSpace `Item`. Each ALTO file is pre-processed based on 
 configuration options and added to the Solr index. If "lazy" indexing is used, OCR files are written to disk.
@@ -39,11 +38,11 @@ You also need to add the solr-ocrhighlighting plugin to Solr.
 
 ## Installation
 
-####Binary:
+#### Binary:
 Pre-compiled binary files for Linux, MacOS and Windows are in the `app/bin` directory. They expect to find the 
 configuration file (config.yml) with the relative path: `./configs`. 
 
-####Docker
+#### Docker
 
 Pull from Docker Hub:
 
@@ -65,7 +64,7 @@ POST, DELETE, or GET requests use the identifier of a DSpace Community, Collecti
 
 `http://<host>:3000/item/413065ef-e242-4d0e-867d-8e2f6486be56`
 
-###DSpace command line tool (under development)
+### DSpace command line tool (under development)
 
 **Add:**
 ./bin/dspace iiif-search-index --add -e mspalti@willamette.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
