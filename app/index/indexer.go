@@ -57,20 +57,18 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string, log *log
 	if err != nil {
 		return err
 	}
-
 	if settings.FileFormat == "alto" {
 		err = processAlto(*uuid, annotationsMap, altoFiles, manifest.Id, *settings, log)
 		if err != nil {
 			return err
 		}
-		return nil
 	} else {
 		var err = processMiniOcr(*uuid, annotationsMap, altoFiles, manifest.Id, *settings, log)
 		if err != nil {
 			return err
 		}
-		return nil
 	}
+	return nil
 }
 
 func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error {

@@ -45,7 +45,7 @@ func processMiniOcr(uuid string, annotationsMap map[string]string, altoFiles []s
 }
 
 // convert creates miniOcr output from the ALTO input.
-func convert(alto *string, position int, escapeUtr8 bool, log *log.Logger) (*string, error) {
+func convert(alto *string, position int, escapeUtf8 bool, log *log.Logger) (*string, error) {
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
 
@@ -111,7 +111,7 @@ func convert(alto *string, position int, escapeUtr8 bool, log *log.Logger) (*str
 				vpos := t.Attr[3]
 				hpos := t.Attr[4]
 				var str = ""
-				if escapeUtr8 {
+				if escapeUtf8 {
 					str = toXmlCodePoint(content.Value)
 				} else {
 					str = content.Value

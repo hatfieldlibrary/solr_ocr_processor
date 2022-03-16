@@ -41,6 +41,27 @@ func processAlto(uuid string, annotationsMap map[string]string, altoFiles []stri
 	return nil
 }
 
+func encodeStrings(strings []String) {
+	for i, _ := range strings {
+		strings[i].CONTENT = toXmlCodePoint(strings[i].CONTENT)
+	}
+}
+func getTextLines(textLines []TextLine) {
+	for i, _ := range textLines {
+		encodeStrings(textLines[i].String)
+	}
+}
+func getTextBlocks(textBlocks []TextBlock) {
+	for i, _ := range textBlocks {
+		getTextLines(textBlocks[i].TextLine)
+	}
+}
+func getComposedBlocks(composedBlocks []ComposedBlock) {
+	for i, _ := range composedBlocks {
+		getTextBlocks(composedBlocks[i].TextBlock)
+	}
+}
+
 func updateAlto(alto *string, position int, escapeUtf8 bool) (*string, error) {
 	var buffer bytes.Buffer
 	reader := strings.NewReader(*alto)
@@ -59,38 +80,25 @@ func updateAlto(alto *string, position int, escapeUtf8 bool) (*string, error) {
 
 		switch t := token.(type) {
 		case xml.StartElement:
-			if t.Name.Local == "Page" {
-				var page Page
-				if err = decoder.DecodeElement(&page, &t); err != nil {
+			if t.Name.Local == "alto" {
+				var alto Alto
+				if err = decoder.DecodeElement(&alto, &t); err != nil {
 					log.Fatal(err)
 				}
-
-				// modify the version value and encode the element back
-				page.Id = "Page." + strconv.Itoa(position)
-
 				t.Attr = t.Attr[:0]
-				if err = encoder.EncodeElement(page, t); err != nil {
-					log.Fatal(err)
-				}
-				continue
-			}
-			if t.Name.Local == "String" {
-				var content String
-				if err = decoder.DecodeElement(&content, &t); err != nil {
-					log.Fatal(err)
-				}
+				alto.Xmlns = ""
+				alto.Layout.Page.Id = "Page." + strconv.Itoa(position)
 				if escapeUtf8 {
-					content.CONTENT = toXmlCodePoint(content.CONTENT)
+					getComposedBlocks(alto.Layout.Page.PrintSpace.ComposedBlock)
+					getTextBlocks(alto.Layout.Page.PrintSpace.TextBlock)
 				}
-				if err = encoder.EncodeElement(content, t); err != nil {
+				if err = encoder.EncodeElement(alto, t); err != nil {
 					log.Fatal(err)
 				}
 				continue
-			}
-			if err := encoder.EncodeToken(xml.CopyToken(t)); err != nil {
-				log.Fatal(err)
 			}
 		}
+
 	}
 
 	// must call flush, otherwise some elements will be missing

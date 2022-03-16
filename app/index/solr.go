@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 
@@ -89,6 +90,7 @@ func getFiles(settings Configuration, manifestUrl string) ([]Docs, error) {
 func deleteFiles(files []Docs) error {
 	for i := 0; i < len(files); i++ {
 		file := files[i].OcrText
+		file = strings.Replace(file, "{ascii}", "", 1)
 		err := os.Remove(file)
 		if err != nil {
 			return err
