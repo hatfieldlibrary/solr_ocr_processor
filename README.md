@@ -31,6 +31,9 @@ When indexing a new item, the service retrieves an IIIF `AnnotationList` of METS
 DSpace `Item` record. ALTO files are first pre-processed based on configuration options and then added to the Solr index. 
 If "lazy" indexing is used, OCR files are written to disk.
 
+This service is meant to run on the same host as Solr, as a way to support "lazy" indexing. If you are using "full" indexing
+or providing a shared file system by other means this is not a requirement and the service can run an a separate host
+
 
 #### External Requirements
 You need an IIIF-enabled DSpace instance and DSpace `Items` that are IIIF and search-enabled via the metadata fields
