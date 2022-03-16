@@ -6,29 +6,33 @@ This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-oc
 
 **solr-ocrhighlighting plugin**: https://github.com/dbmdz/solr-ocrhighlighting. 
 
-#### The service:
-* Supports GET, POST, and DELETE
+#### Supports
+* GET, POST, and DELETE methods
 * For POST's, MiniOcr or ALTO files are added to the index with "full" or "lazy" indexing and optional XML-encoding of Unicode characters.
 * GET requests verify that OCR files have been indexed.
 * DELETE requests remove OCR files from the index and the file system (if "lazy" indexing was used).
 
-#### Configuration options:
-* http_port: listen port of service
-* ip_whitelist: IPs that are allowed access
-* dspace_host: Base URL of the DSpace service
-* solr_url: Base URL of the Solr service
-* solr_core: Solr core ("word_highlighting")
-* file_format: MiniOcr or ALTO
-* index_type: Full or lazy
-* escape_utf8: XML-encoding of unicode characters
-* xml_file_location: Path to OCR files (when "lazy" indexing used)
-* log_dir: Path to the log directory
+#### Configuration Options
+* **http_port**: listen port of service
+* **ip_whitelist**: IPs that are allowed access
+* **dspace_host**: Base URL of the DSpace service
+* **solr_url**: Base URL of the Solr service
+* **solr_core**: Solr core ("word_highlighting")
+* **file_format**: MiniOcr or ALTO
+* **index_type**: Full or lazy
+* **escape_utf8**: XML-encoding of unicode characters
+* **xml_file_location**: Path to OCR files (when "lazy" indexing used)
+* **log_dir**: Path to the log directory
 
-#### Overview:
-The service works in conjunction with the DSpace IIIF integration. When indexing a new item, the service retrieves an
-IIIF `AnnotationList` of METS and ALTO files from the DSpace `Item`. Each ALTO file is pre-processed based on 
-configuration options and added to the Solr index. If "lazy" indexing is used, OCR files are written to disk.
+#### Overview
+The service works in conjunction with DSpace 7.x IIIF support. 
 
+When indexing a new item, the service retrieves an IIIF `AnnotationList` of METS and ALTO files from the 
+DSpace `Item` record. ALTO files are first pre-processed based on configuration options and then added to the Solr index. 
+If "lazy" indexing is used, OCR files are written to disk.
+
+
+#### External Requirements
 You need an IIIF-enabled DSpace instance and DSpace `Items` that are IIIF and search-enabled via the metadata fields
 `dspace-iiif-enabled` and `iiif-search-enabled`. To be available in an IIIF `AnnotationList`, METS/ALTO files must be
 in the DSpace Item's `OTHER_CONTENT` Bundle.
