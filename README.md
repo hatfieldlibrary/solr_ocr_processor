@@ -1,34 +1,77 @@
-1# Alto Indexer
 
-This is an early release for testing.
+## Processing Service for the DSpace IIIF Search API
+This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-ocrhighlighting` Solr plugin. DSpace 
+includes a command line option for processing collections of searchable, IIIF-enabled items.
 
-## Processing DSpace IIIF Records for Search API Requests 
-This service pre-processes METS/ALTO files for indexing by the solr-ocrhighlighting Solr plugin. The solr-ocrhighlighting plugin is maintained by the MDZ Digital Library team: https://github.com/dbmdz/solr-ocrhighlighting.
+**DSpace**: https://wiki.lyrasis.org/display/DSDOC7x
 
-The service:
+**solr-ocrhighlighting plugin**: https://github.com/dbmdz/solr-ocrhighlighting. 
 
-* Takes the DSpace Item ID as an HTTP request parameter.
-* Retrieves the IIIF `Manifest` and an `AnnotationList` that the references METS and ALTO files for the DSpace item.
-* Retrieves the ALTO files from DSpace, processes the files, and POST's them to the
-  Solr plugin for indexing.
-* If lazy loading, files are written to disk. When lazy loading, the Solr service  MUST be able to access the shared file system.
+####The service:
+* Supports GET, POST, and DELETE
+* For POST's, MiniOcr or ALTO files are added to the index with "full" or "lazy" indexing and optional XML-encoding of Unicode characters.
+* GET requests verify that OCR files have been indexed.
+* DELETE requests remove OCR files from the index and the file system (if "lazy" indexing was used).
+
+####Configuration options:
+* http_port: listen port of service
+* ip_whitelist: IPs that are allowed access
+* dspace_host: Base URL of the DSpace service
+* solr_url: Base URL of the Solr service
+* solr_core: Solr core ("word_highlighting")
+* file_format: MiniOcr or ALTO
+* index_type: Full or lazy
+* escape_utf8: XML-encoding of unicode characters
+* xml_file_location: Path to OCR files (when "lazy" indexing used)
+* log_dir: Path to the log directory
+
+####Overview:
+The service works in conjunction with the DSpace IIIF integration. When indexing a new item, the service retrieves an
+IIIF `AnnotationList` of METS and ALTO files from the DSpace `Item`. Each ALTO file is pre-processed based on 
+configuration options and added to the Solr index. If "lazy" indexing is used, OCR files are written to disk.
+
+You need an IIIF-enabled DSpace instance and DSpace `Items` that are IIIF and search-enabled via the metadata fields
+`dspace-iiif-enabled` and `iiif-search-enabled`. To be available in an IIIF `AnnotationList`, METS/ALTO files must be
+in the DSpace Item's `OTHER_CONTENT` Bundle.
+
+You also need to add the solr-ocrhighlighting plugin to Solr.
 
 
 ## Installation
 
-A download for distribution will be provided soon. In the meantime, a Docker container is available for early testing.
+####Binary:
+Pre-compiled binary files for Linux, MacOS and Windows are in the `app/bin` directory. They expect to find the 
+configuration file (config.yml) with the relative path: `./configs`. 
+
+####Docker
+
+Pull from Docker Hub:
 
 `docker pull mspalti/altoindexer:latest`
 
-To run the container:
+Example for running the container (Linux).
 
 `docker run -d --network host -v /host/path/to/configs:/indexer/configs -v /host/path/to/logs:/indexer/logs -v /path/escaped/alto/files:/var/escaped_alto_files mspalti/altoindexer`
 
+On MacOS or Windows you can't use the `--network host` option. In that case, change the DSpace and Solr URL's in 
+`config.yml` to use the IP address of the host system instead of `localhost`.
+
+DSpace 7.x should eventually include OS-specific directories with starter configuration files and a Solr core that
+is pre-configured for the `solr-ocrhighlighting` plugin.
+
 ## Usage
 
-Currently, only "add" operations are supported. The service will soon support search and deletion. At this time the only supported method is GET but POST and DELETE methods are planned.  
+POST, DELETE, or GET requests use the identifier of a DSpace Community, Collection or Item as follows: 
 
-`http://<host>:3000/413065ef-e242-4d0e-867d-8e2f6486be56/add`
+`http://<host>:3000/item/413065ef-e242-4d0e-867d-8e2f6486be56`
+
+###DSpace command line tool (under development)
+
+**Add:**
+./bin/dspace iiif-search-index --add -e mspalti@willamette.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
+
+**Delete:**
+./bin/dspace iiif-search-index --delet -e mspalti@willamette.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
 
 
 
