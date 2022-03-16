@@ -18,6 +18,7 @@ type AddItem struct{}
 
 type DeleteItem struct{}
 
+// IndexerAction for checking if item is already indexed.
 func (axn GetItem) IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error {
 	exists, err := checkSolr(*settings, *uuid)
 	if err != nil {
@@ -25,13 +26,14 @@ func (axn GetItem) IndexerAction(settings *Configuration, uuid *string, log *log
 		return err
 	}
 	if !exists {
+		// If the item is not in index return 404 error code.
 		return NotFound{ID: *uuid}
 	}
 	return nil
 }
 
+// IndexerAction for adding to index
 func (axn AddItem) IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error {
-	log.Println("Indexing item: " + *uuid)
 	manifestJson, err := getManifest(settings.DSpaceHost, *uuid, log)
 	if err != nil {
 		return err
@@ -60,27 +62,33 @@ func (axn AddItem) IndexerAction(settings *Configuration, uuid *string, log *log
 	if settings.FileFormat == "alto" {
 		err = processAlto(*uuid, annotationsMap, altoFiles, manifest.Id, *settings, log)
 		if err != nil {
+			log.Println("ALTO processing failure: " + err.Error())
 			return err
 		}
+		log.Println("Indexed ALTO file for: " + *uuid)
 	} else {
 		var err = processMiniOcr(*uuid, annotationsMap, altoFiles, manifest.Id, *settings, log)
 		if err != nil {
+			log.Println("MinoOcr processing failure: " + err.Error())
 			return err
 		}
+		log.Println("Indexed MiniOcr file for: " + *uuid)
 	}
 	return nil
 }
 
+// IndexerAction for deletion
 func (axn DeleteItem) IndexerAction(settings *Configuration, uuid *string, log *log.Logger) error {
 	err := deleteFromSolr(*settings, *uuid)
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	}
+	log.Println("Deleted from index: " + *uuid)
 	return nil
 }
 
-// Gets alto file names from mets file.
+// getAltoFiles gets alto file names from mets file.
 func getAltoFiles(annotationsMap map[string]string, log *log.Logger) ([]string, error) {
 	metsReader, err := getMetsXml(annotationsMap["mets.xml"], log)
 	if err != nil {

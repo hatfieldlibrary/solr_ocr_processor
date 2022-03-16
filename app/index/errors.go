@@ -31,5 +31,5 @@ func (e UnProcessableEntity) Error() string {
 }
 
 func (e NotFound) Error() string {
-	return fmt.Sprintf("Item not in index: %v", e.ID)
+	return fmt.Sprintf("Item is not in index: %v", e.ID)
 }

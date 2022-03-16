@@ -20,7 +20,8 @@ func processAlto(uuid string, annotationsMap map[string]string, altoFiles []stri
 			}
 			if len(alto) != 0 {
 				altoString := string(alto)
-				updatedAlto, err := updateAlto(&altoString, i, settings.EscapeUtf8)
+
+				updatedAlto, err := updateAlto(&altoString, i, settings)
 				if err != nil {
 					return err
 				}
@@ -62,11 +63,14 @@ func getComposedBlocks(composedBlocks []ComposedBlock) {
 	}
 }
 
-func updateAlto(alto *string, position int, escapeUtf8 bool) (*string, error) {
+func updateAlto(alto *string, position int, settings Configuration) (*string, error) {
 	var buffer bytes.Buffer
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
 	encoder := xml.NewEncoder(&buffer)
+
+	escape := settings.EscapeUtf8 && settings.IndexType == "lazy"
+
 	for {
 		token, err := decoder.Token()
 		if err == io.EOF {
@@ -88,7 +92,7 @@ func updateAlto(alto *string, position int, escapeUtf8 bool) (*string, error) {
 				t.Attr = t.Attr[:0]
 				alto.Xmlns = ""
 				alto.Layout.Page.Id = "Page." + strconv.Itoa(position)
-				if escapeUtf8 {
+				if escape {
 					getComposedBlocks(alto.Layout.Page.PrintSpace.ComposedBlock)
 					getTextBlocks(alto.Layout.Page.PrintSpace.TextBlock)
 				}
@@ -105,7 +109,14 @@ func updateAlto(alto *string, position int, escapeUtf8 bool) (*string, error) {
 	if err := encoder.Flush(); err != nil {
 		log.Fatal(err)
 	}
+
 	out := buffer.String()
+	if settings.IndexType == "full" {
+		// Use single quotes in XML so that we submit in json. Note
+		// that full indexing of ALTO is not advised. The more
+		// compact miniocr format is preferred.
+		out = strings.ReplaceAll(out, "\"", "'")
+	}
 	return &out, nil
 
 }

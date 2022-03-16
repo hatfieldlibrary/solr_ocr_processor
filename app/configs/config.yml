@@ -1,32 +1,39 @@
 http_port:
-  # http port used by this service
+  # The port used by the http service.
   "3000"
-# IP addresses of whitelisted hosts. If the list is empty, all IP's can access the service.
+# IP addresses of whitelisted hosts. If the list is empty, all IP's can access the http service.
 # Example: ["127.0.0.1", "192.168.0.1"]
 ip_whitelist:
   []
 dspace_host:
-  # dspace api base (no trailing slash)
+  # The DSpace api base url (no trailing slash)
   "http://localhost:8080/server"
 solr_url:
-  # solr host (no trailing slash)
+  # The solr host (no trailing slash)
   "http://localhost:8983/solr"
 solr_core:
-  # the solr core name
+  # The solr core name.
   "word_highlighting"
 file_format:
-  # The application supports "alto" or "miniocr" formats
+  # Supports "alto" or "miniocr" formats. You should choose the more compact "miniocr" format
+  # in most cases. When using "miniocr" the application will convert your alto files to miniocr
+  # before indexing.
   "alto"
 index_type:
-  # You can use "lazy" or "full" indexing, see Solr OCR Highlighting documentation for details
+  # You can use "lazy" or "full" indexing. If you choose "lazy" indexing the highlighter plugin
+  # will retrieve ocr files from disk (lazy load) for each search result. This results in a
+  # significantly smaller index but can have an effect on performance.
+  # to disk
   "lazy"
 escape_utf8:
-  # escape utf8 strings
-  # when "lazy" loading ocr files from disk you can improve performance by converting utf8 to xml-encoded ascii strings.
+  # When "lazy" loading ocr files from disk you can improve performance by converting utf8 to xml-encoded
+  # ascii strings. This setting is only applied if you have also chosen "lazy" indexing. Converting to
+  # ascii reduces CPU load when lazy loading word highlights.
   true
 xml_file_location:
-  # path used for lazy index files. Solr will read ocr files from this directory if "lazy" indexing is used.
+  # The path used for lazy index files. Solr will read ocr files from this directory if "lazy" indexing is used.
   "/Users/mspalti/escaped_alto"
 
 log_dir:
+  # The location of your log directory.
   "./logs"

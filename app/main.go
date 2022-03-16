@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,10 +21,12 @@ import (
 // Local configuration directory
 const configFilePath = "./configs"
 
+
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(configFilePath)
+	dir := filepath.ToSlash(configFilePath)
+	viper.AddConfigPath(dir)
 
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil {             // Handle errors reading the config file
@@ -51,7 +54,6 @@ func checkWhitelist(request *http.Request, whitelist []string) bool {
 	ip, _, _ := net.SplitHostPort(request.RemoteAddr)
 	ipString := net.ParseIP(ip).String()
 	var inWhitelist = false
-	println(len(whitelist))
 	if len(whitelist) == 0 {
 		inWhitelist = true
 	}
@@ -150,7 +152,6 @@ func main() {
 	}
 	defer file.Close()
 	logger := log.New(file, "indexer: ", log.LstdFlags)
-
 
 	// set up the server and handler(s)
 	mux := http.NewServeMux()
