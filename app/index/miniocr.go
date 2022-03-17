@@ -135,10 +135,10 @@ func convert(alto *string, position int, settings Configuration) (*string, error
 		return nil, err
 	}
 	out := string(marshalledXml)
+	out = xml.Header + out
 	if settings.IndexType == "full" {
 		// Use single quotes in XML so we can submit in json
 		out = strings.ReplaceAll(out, "\"", "'")
 	}
-	out = xml.Header + out
 	return &out, nil
 }

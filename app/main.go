@@ -17,9 +17,9 @@ import (
 // container use a relative path to the local configuration
 // directory.
 // Container mount point:
-// const configFilePath = "/indexer/configs"
+//const configFilePath = "/indexer/configs"
 // Local configuration directory
-const configFilePath = "./configs"
+ const configFilePath = "./configs"
 
 
 func config() (*Configuration, error) {

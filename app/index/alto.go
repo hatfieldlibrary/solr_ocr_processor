@@ -20,7 +20,6 @@ func processAlto(uuid string, annotationsMap map[string]string, altoFiles []stri
 			}
 			if len(alto) != 0 {
 				altoString := string(alto)
-
 				updatedAlto, err := updateAlto(&altoString, i, settings)
 				if err != nil {
 					return err

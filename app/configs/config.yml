@@ -18,7 +18,7 @@ file_format:
   # Supports "alto" or "miniocr" formats. You should choose the more compact "miniocr" format
   # in most cases. When using "miniocr" the application will convert your alto files to miniocr
   # before indexing.
-  "alto"
+  "miniocr"
 index_type:
   # You can use "lazy" or "full" indexing. If you choose "lazy" indexing the highlighter plugin
   # will retrieve ocr files from disk (lazy load) for each search result. This results in a
@@ -32,7 +32,7 @@ escape_utf8:
   true
 xml_file_location:
   # The path used for lazy index files. Solr will read ocr files from this directory if "lazy" indexing is used.
-  "/Users/mspalti/escaped_alto"
+  "/Users/mspalti/ocr_files"
 
 log_dir:
   # The location of your log directory.
