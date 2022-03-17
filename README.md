@@ -31,6 +31,9 @@ When indexing a new item, the service retrieves an IIIF `AnnotationList` of METS
 DSpace `Item` record. ALTO files are first pre-processed based on configuration options and then added to the Solr index. 
 If "lazy" indexing is used, OCR files are written to disk.
 
+This service is meant to run on the same host as Solr, as a way to support "lazy" indexing. If you are using "full" indexing
+or providing a shared file system by other means this is not a requirement and the service can run on a separate host
+
 
 #### External Requirements
 You need an IIIF-enabled DSpace instance and DSpace `Items` that are IIIF and search-enabled via the metadata fields
@@ -42,9 +45,13 @@ You also need to add the solr-ocrhighlighting plugin to Solr.
 
 ## Installation
 
-#### Binary:
-Pre-compiled binary files for Linux, MacOS and Windows are in the `app/bin` directory. They expect to find the 
-configuration file (config.yml) with the relative path: `./configs`. 
+#### Binary Files:
+
+DSpace 7.x should eventually include OS-specific directories with starter configuration files and a Solr core that's pre-configured for the `solr-ocrhighlighting` plugin.
+
+In the meantime, you can build from source.
+
+`go build main.go -o /output/directory`
 
 #### Docker
 
@@ -52,15 +59,18 @@ Pull from Docker Hub:
 
 `docker pull mspalti/altoindexer:latest`
 
-Example for running the container (Linux).
+Example of running the container with volumes (Linux).
 
-`docker run -d --network host -v /host/path/to/configs:/indexer/configs -v /host/path/to/logs:/indexer/logs -v /path/escaped/alto/files:/var/escaped_alto_files mspalti/altoindexer`
+`docker run -d --network host -v /host/path/to/configs:/indexer/configs -v /host/path/to/logs:/indexer/logs -v /path/escaped/alto/files:/var/ocr_files mspalti/altoindexer`
 
-On MacOS or Windows you can't use the `--network host` option. In that case, change the DSpace and Solr URL's in 
-`config.yml` to use the IP address of the host system instead of `localhost`.
+Note that you don't need to create a volume for the `/var/ocr_files` mount point if you aren't using "lazy" indexing. 
 
-DSpace 7.x should eventually include OS-specific directories with starter configuration files and a Solr core that
-is pre-configured for the `solr-ocrhighlighting` plugin.
+If using SELinux security you may need to add `:Z` to your mount point paths, e.g. `/indexer/logs:Z`
+
+On MacOS or Windows you can't use the `--network host` option. Instead, change DSpace and Solr URL's in 
+`config.yml` to use the IP address of the host system rather than `localhost`. This appoach works only for "full"
+indexing. 
+
 
 ## Usage
 
@@ -71,10 +81,10 @@ POST, DELETE, or GET requests use the identifier of a DSpace Community, Collecti
 ### DSpace command line tool (under development)
 
 **Add:**
-./bin/dspace iiif-search-index --add -e mspalti@willamette.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
+./bin/dspace iiif-search-index --add -e user@dspace.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
 
 **Delete:**
-./bin/dspace iiif-search-index --delet -e mspalti@willamette.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
+./bin/dspace iiif-search-index --delete -e user@dspace.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
 
 
 
