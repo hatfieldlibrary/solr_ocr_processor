@@ -18,7 +18,7 @@ This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-oc
 * **dspace_host**: Base URL of the DSpace service
 * **solr_url**: Base URL of the Solr service
 * **solr_core**: Solr core ("word_highlighting")
-* **file_format**: MiniOcr or ALTO
+* **miniocr_conversion**: Convert OCR to MiniOcr format
 * **index_type**: Full or lazy
 * **escape_utf8**: XML-encoding of unicode characters
 * **xml_file_location**: Path to OCR files (when "lazy" indexing used)

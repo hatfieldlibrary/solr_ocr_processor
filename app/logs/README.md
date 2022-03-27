@@ -1,2 +1,0 @@
-Log directory mount point.
-

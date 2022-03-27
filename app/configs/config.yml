@@ -14,26 +14,24 @@ solr_url:
 solr_core:
   # The solr core name.
   "word_highlighting"
-file_format:
-  # Supports "alto" or "miniocr" formats. You should choose the more compact "miniocr" format
-  # in most cases. When using "miniocr" the application will convert your alto files to miniocr
-  # before indexing.
-  "miniocr"
+miniocr_conversion:
+  # Covert input file type (ALTO or hOCR) to MiniOcr format.
+  true
 index_type:
   # You can use "lazy" or "full" indexing. If you choose "lazy" indexing the highlighter plugin
   # will retrieve ocr files from disk (lazy load) for each search result. This results in a
   # significantly smaller index but can have an effect on performance.
   # to disk
-  "lazy"
+  "full"
 escape_utf8:
   # When "lazy" loading ocr files from disk you can improve performance by converting utf8 to xml-encoded
   # ascii strings. This setting is only applied if you have also chosen "lazy" indexing. Converting to
   # ascii reduces CPU load when lazy loading word highlights.
-  true
+  false
 xml_file_location:
   # The path used for lazy index files. Solr will read ocr files from this directory if "lazy" indexing is used.
-  "/Users/mspalti/ocr_files"
+  "/var/ocr_files"
 
 log_dir:
   # The location of your log directory.
-  "./logs"
+  "/var/log/ocr_indexer"

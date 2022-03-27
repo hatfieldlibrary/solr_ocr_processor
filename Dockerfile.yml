@@ -18,7 +18,10 @@ COPY ./app/go.sum ./
 RUN go mod download
 
 COPY ./app/main.go ./
-COPY ./app/index/* ./index/
+COPY ./app/process/* ./process/
+COPY ./app/model/* ./model/
+COPY ./app/err/* ./err/
+COPY ./app/handler/* ./handler/
 
 RUN go install -v ./...
 

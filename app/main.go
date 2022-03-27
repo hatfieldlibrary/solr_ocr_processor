@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
-	. "github.com/mspalti/altoindexer/index"
+	. "github.com/mspalti/altoindexer/err"
+	. "github.com/mspalti/altoindexer/handler"
+	. "github.com/mspalti/altoindexer/model"
 	"github.com/spf13/viper"
 	"log"
 	"net"
@@ -12,15 +14,7 @@ import (
 	"strings"
 )
 
-// This absolute path is the mount point for the
-// container volume. If you are not running inside a
-// container use a relative path to the local configuration
-// directory.
-// Container mount point:
-//const configFilePath = "/indexer/configs"
-// Local configuration directory
- const configFilePath = "./configs"
-
+const configFilePath = "./configs"
 
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
@@ -33,17 +27,17 @@ func config() (*Configuration, error) {
 		return &Configuration{}, errors.New("fatal error reading config file" + err.Error())
 	}
 	config := Configuration{
-		DSpaceHost:      viper.GetString("dspace_host"),
-		Collections:     viper.GetStringSlice("Collections"),
-		SolrUrl:         viper.GetString("solr_url"),
-		SolrCore:        viper.GetString("solr_core"),
-		FileFormat:      viper.GetString("file_format"),
-		IndexType:       viper.GetString("index_type"),
-		EscapeUtf8:      viper.GetBool("escape_utf8"),
-		XmlFileLocation: viper.GetString("xml_file_location"),
-		HttpPort:        viper.GetString("http_port"),
-		IpWhitelist:     viper.GetStringSlice("ip_whitelist"),
-		LogDir:          viper.GetString("log_dir"),
+		DSpaceHost:       viper.GetString("dspace_host"),
+		Collections:      viper.GetStringSlice("Collections"),
+		SolrUrl:          viper.GetString("solr_url"),
+		SolrCore:         viper.GetString("solr_core"),
+		IndexType:        viper.GetString("index_type"),
+		ConvertToMiniOcr: viper.GetBool("miniocr_conversion"),
+		EscapeUtf8:       viper.GetBool("escape_utf8"),
+		XmlFileLocation:  viper.GetString("xml_file_location"),
+		HttpPort:         viper.GetString("http_port"),
+		IpWhitelist:      viper.GetStringSlice("ip_whitelist"),
+		LogDir:           viper.GetString("log_dir"),
 	}
 
 	return &config, nil
@@ -76,7 +70,7 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 			return
 		}
 
-		// get the item identifier from the request
+		// get the iiif identifier from the http request
 		pathParams := strings.Split(request.URL.Path, "/")[1:]
 		if !(len(pathParams) >= 2) {
 			handleError(errors.New("missing parameter"), response, 400)
@@ -84,7 +78,7 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 		}
 		itemId := pathParams[1]
 
-		// set action
+		// set the handler
 		var idx Indexer
 		if request.Method == "GET" {
 			idx = GetItem{}
@@ -114,7 +108,7 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 }
 
 func handleError(err error, response http.ResponseWriter, code int) {
-	log.Println(err)
+	log.Println(err.Error())
 	switch err.(type) {
 	case UnProcessableEntity:
 		response.WriteHeader(422)
@@ -131,7 +125,7 @@ func handleError(err error, response http.ResponseWriter, code int) {
 
 func getLogFile(config *Configuration) (*os.File, error) {
 	path := config.LogDir + "/alto_indexer.log"
-	file, err := os.OpenFile(path, os.O_RDWR | os.O_APPEND|os.O_CREATE, 0666)
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0775)
 	return file, err
 }
 

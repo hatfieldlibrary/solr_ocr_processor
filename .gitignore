@@ -1,4 +1,4 @@
 bin
 logs
 app/bin
-app/logs
+app/logs/alto_indexer.log
