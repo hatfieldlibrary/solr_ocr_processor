@@ -40,14 +40,15 @@ or providing a shared file system by other means the service can run on a separa
 
 
 #### External Requirements
-You need an IIIF-enabled DSpace instance and DSpace `Items` that are IIIF and search-enabled via the metadata fields
-`dspace-iiif-enabled` and `iiif-search-enabled`. To be available in an IIIF `AnnotationList`, your OCR files must be
+You must add the solr-ocrhighlighting plugin to Solr. See the instructions: https://dbmdz.github.io/solr-ocrhighlighting/installation/
+
+You need an IIIF-enabled DSpace instance. Your DSpace `Items` must be individually enabled for IIIF and search via 
+the metadata fields `dspace-iiif-enabled` and `iiif-search-enabled`. The Item's OCR files must be
 in the DSpace Item's `OtherContent` Bundle. If your processing order is determined by structural metadata, be sure
 to name your structural metadata file `mets.xml`. If this file does not exist or has not been correctly named, 
 processing order is determined by the order of OCR files in the `OtherContent` Bundle.
 
-You also need to add the solr-ocrhighlighting plugin to Solr.
-
+See DSpace IIIF documentation: https://wiki.lyrasis.org/display/DSDOC7x/IIIF+Configuration
 
 ## Installation
 
