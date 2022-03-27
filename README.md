@@ -1,7 +1,7 @@
 
 ## Processing Service for the DSpace IIIF Search API
-This service pre-processes OCR files for indexing by the `solr-ocrhighlighting` Solr plugin. It retrieves a
-DSpace Item's OCR files via an `AnnotationList`, using the DSpace IIIF integration. 
+This service pre-processes OCR files for indexing by the `solr-ocrhighlighting` Solr plugin. OCR files are 
+retrieved from DSpace using the DSpace IIIF integration. 
 
 **DSpace**: https://wiki.lyrasis.org/display/DSDOC7x
 
