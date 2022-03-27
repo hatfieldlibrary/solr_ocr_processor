@@ -41,8 +41,10 @@ or providing a shared file system by other means the service can run on a separa
 
 #### External Requirements
 You need an IIIF-enabled DSpace instance and DSpace `Items` that are IIIF and search-enabled via the metadata fields
-`dspace-iiif-enabled` and `iiif-search-enabled`. To be available in an IIIF `AnnotationList`, METS/ALTO files must be
-in the DSpace Item's `OTHER_CONTENT` Bundle.
+`dspace-iiif-enabled` and `iiif-search-enabled`. To be available in an IIIF `AnnotationList`, your OCR files must be
+in the DSpace Item's `OtherContent` Bundle. If your processing order is determined by structural metadata, be sure
+to name your structural metadata file `mets.xml`. If this file does not exist or has not been correctly named, 
+processing order is determined by the order of OCR files in the `OtherContent` Bundle.
 
 You also need to add the solr-ocrhighlighting plugin to Solr.
 
@@ -78,11 +80,17 @@ indexing.
 
 ## Usage
 
-POST, DELETE, or GET requests use the identifier of a DSpace Community, Collection or Item as follows: 
+POST, DELETE, or GET requests use the identifier of a DSpace Item as follows: 
 
 `http://<host>:3000/item/413065ef-e242-4d0e-867d-8e2f6486be56`
 
 ### DSpace command line tool (under development)
+
+A DSpace CLI tool is currently being considered. That tool uses this service to add or delete OCR from the
+Solr index. The tool allows batch updates at the Community or Collection levels, as well as individual Item 
+updates. 
+
+Usage:
 
 **Add:**
 ./bin/dspace iiif-search-index --add -e user@dspace.edu -i f797f6ee-f27f-4548-8590-45d6df8a7431
