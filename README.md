@@ -1,6 +1,7 @@
 
 ## Processing Service for the DSpace IIIF Search API
-This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-ocrhighlighting` Solr plugin. 
+This service pre-processes OCR files for indexing by the `solr-ocrhighlighting` Solr plugin. It retrieves a
+DSpace Item's OCR files via an `AnnotationList`, using the DSpace IIIF integration. 
 
 **DSpace**: https://wiki.lyrasis.org/display/DSDOC7x
 
@@ -8,9 +9,10 @@ This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-oc
 
 #### Supports
 * GET, POST, and DELETE methods
-* For POST's, MiniOcr or ALTO files are added to the index with "full" or "lazy" indexing and optional XML-encoding of Unicode characters.
-* GET requests verify that OCR files have been indexed.
-* DELETE requests remove OCR files from the index and the file system (if "lazy" indexing was used).
+* Addition of `MiniOcr`, `hOCR` or `ALTO` to the index with "full" or "lazy" indexing (with optional XML-encoding of Unicode characters), via POST.
+* Conversion of `hOCR` and `ALTO` files to `MiniOcr`.
+* Checks for whether OCR files have been indexed, via GET.
+* Removal of OCR files from the index and the file system if "lazy" indexing was used, via DELETE.
 
 #### Configuration Options
 * **http_port**: listen port of service
@@ -27,12 +29,14 @@ This service pre-processes `DSpace` METS/ALTO files for indexing by the `solr-oc
 #### Overview
 The service works in conjunction with DSpace 7.x IIIF support. 
 
-When indexing a new item, the service retrieves an IIIF `AnnotationList` of METS and ALTO files from the 
-DSpace `Item` record. ALTO files are first pre-processed based on configuration options and then added to the Solr index. 
+When indexing a new item, the service retrieves an IIIF `AnnotationList` of OCR files from the 
+DSpace `Item` record. The OCR files are pre-processed based on configuration options and added to the Solr index. 
 If "lazy" indexing is used, OCR files are written to disk.
 
-This service is meant to run on the same host as Solr, as a way to support "lazy" indexing. If you are using "full" indexing
-or providing a shared file system by other means this is not a requirement and the service can run on a separate host
+Processing order is determined either by structural metadata (e.g. METS) or the order of OCR files in the DSpace bundle. 
+
+This service can be ran on the same host as Solr to support "lazy" indexing. If you are using "full" indexing
+or providing a shared file system by other means the service can run on a separate host
 
 
 #### External Requirements
