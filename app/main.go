@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
-	. "github.com/mspalti/altoindexer/err"
-	. "github.com/mspalti/altoindexer/handler"
-	. "github.com/mspalti/altoindexer/model"
+	. "github.com/mspalti/ocrprocessor/err"
+	. "github.com/mspalti/ocrprocessor/handler"
+	. "github.com/mspalti/ocrprocessor/model"
 	"github.com/spf13/viper"
 	"log"
 	"net"

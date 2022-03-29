@@ -1,8 +1,8 @@
 package process
 
 import (
-	. "github.com/mspalti/altoindexer/err"
-	"github.com/mspalti/altoindexer/model"
+	. "github.com/mspalti/ocrprocessor/err"
+	"github.com/mspalti/ocrprocessor/model"
 	"log"
 )
 

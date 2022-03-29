@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/mspalti/altoindexer/model"
+	"github.com/mspalti/ocrprocessor/model"
 	"io"
 	"log"
 	"strings"

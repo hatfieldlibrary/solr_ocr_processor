@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/mspalti/altoindexer/model"
+	"github.com/mspalti/ocrprocessor/model"
 	"log"
 	"testing"
 )

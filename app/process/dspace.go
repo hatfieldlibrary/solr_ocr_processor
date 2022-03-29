@@ -2,7 +2,7 @@ package process
 
 import (
 	"bytes"
-	. "github.com/mspalti/altoindexer/err"
+	. "github.com/mspalti/ocrprocessor/err"
 	"io"
 	"log"
 	"net/http"

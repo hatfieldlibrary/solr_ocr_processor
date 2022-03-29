@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"errors"
-	"github.com/mspalti/altoindexer/model"
+	"github.com/mspalti/ocrprocessor/model"
 	"io"
 	"log"
 	"strconv"
