@@ -64,7 +64,7 @@ In the meantime, you can build from source.
 
 Pull from Docker Hub:
 
-`docker pull mspalti/altoindexer:latest`
+`docker pull mspalti/ocr_processor:latest`
 
 Example of running the container with volumes (Linux).
 
