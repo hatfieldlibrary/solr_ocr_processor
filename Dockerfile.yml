@@ -2,12 +2,16 @@ FROM golang:1.16
 
 EXPOSE 3000
 
-WORKDIR /indexer
+WORKDIR /processor
 
-ARG LOG_DIR=./logs
+RUN groupadd -r user && useradd -r -g user user
+
+ARG LOG_DIR=/var/log/ocr_processor
+ARG FILE_DIR=/var/ocr_files
 ARG CONFIG_DIR=./configs
 
-RUN mkdir -p $LOG_DIR
+RUN mkdir -p $LOG_DIR && chown -R user $LOG_DIR
+RUN mkdir -p $FILE_DIR && chown -R user $FILE_DIR
 RUN mkdir -p $CONFIG_DIR
 
 COPY ./app/configs/config.yml $CONFIG_DIR
@@ -25,5 +29,7 @@ COPY ./app/handler/* ./handler/
 
 RUN go install -v ./...
 
-ENTRYPOINT ["/go/bin/altoindexer"]
+USER user
+
+ENTRYPOINT ["/go/bin/ocrprocessor"]
 

@@ -16,13 +16,13 @@ solr_core:
   "word_highlighting"
 miniocr_conversion:
   # Covert input file type (ALTO or hOCR) to MiniOcr format.
-  true
+  false
 index_type:
   # You can use "lazy" or "full" indexing. If you choose "lazy" indexing the highlighter plugin
   # will retrieve ocr files from disk (lazy load) for each search result. This results in a
   # significantly smaller index but can have an effect on performance.
   # to disk
-  "full"
+  "lazy"
 escape_utf8:
   # When "lazy" loading ocr files from disk you can improve performance by converting utf8 to xml-encoded
   # ascii strings. This setting is only applied if you have also chosen "lazy" indexing. Converting to
@@ -34,4 +34,4 @@ xml_file_location:
 
 log_dir:
   # The location of your log directory.
-  "/var/log/ocr_indexer"
+  "/var/log/ocr_processor"
