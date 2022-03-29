@@ -68,7 +68,7 @@ Pull from Docker Hub:
 
 Example of running the container with volumes (Linux).
 
-`docker run -d --network host -v /host/path/to/configs:/indexer/configs -v /host/path/to/logs:/indexer/logs -v /path/escaped/alto/files:/var/ocr_files mspalti/altoindexer`
+`docker run -d -user <host_user_GID> --network host -v /host/path/to/configs:/processor/configs -v /host/path/to/logs:/var/log/ocr_processor -v /path/escaped/alto/files:/var/ocr_files mspalti/ocrprocessor`
 
 Note that you don't need to create a volume for the `/var/ocr_files` mount point if you aren't using "lazy" indexing. 
 
