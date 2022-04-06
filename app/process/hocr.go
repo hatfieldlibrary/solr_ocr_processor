@@ -198,7 +198,7 @@ func updateXML(ocr *string, position int, settings model.Configuration) (*string
 	xmlEncodeWord := false
 
 	for {
-		token, err := decoder.Token()
+		token, err := decoder.RawToken()
 		if err == io.EOF {
 			break
 		}
