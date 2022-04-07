@@ -21,7 +21,7 @@ type AddItem struct{}
 
 type DeleteItem struct{}
 
-// IndexerAction checks whether item is already in the Solr index.
+// IndexerAction tests whether item is already in the Solr index.
 func (axn GetItem) IndexerAction(settings *model.Configuration, uuid *string, log *log.Logger) error {
 	exists, err := process.CheckSolr(*settings, *uuid)
 	if err != nil {
@@ -61,7 +61,7 @@ func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 		return err
 	}
 	// Create ordered list of file names using either the METS file (named mets.xml) or the DSpace bundle's bitstream
-	// order. The processing order defines page identifiers that must match canvas identifiers in the
+	// order. The processing order defines page identifiers that match canvas identifiers in the
 	// IIIF manifest. If these do not align, search results and word highlighting will be incorrect. The METS
 	// file is a good way to assure correct order. Without it, you must guarantee that OCR bitstreams in the DSpace
 	// OtherContent bundle (used for seeAlso annotations) are ordered correctly.
@@ -81,8 +81,14 @@ func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 			if err != nil {
 				return err
 			}
-			// get the OCR file format
-			format = process.GetOcrFormat(ocr[0:140])
+			// get the OCR file format based on 1200 character sample
+			var chunk string
+			if len(ocr) > 1200 {
+				chunk = ocr[0:1200]
+			} else {
+				chunk = ocr
+			}
+			format = process.GetOcrFormat(chunk)
 		}
 		if len(ocr) != 0 {
 			log.Println("processing OCR format: " + format.String())

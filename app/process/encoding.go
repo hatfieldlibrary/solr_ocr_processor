@@ -6,8 +6,8 @@ import (
 	"unicode/utf8"
 )
 
-// toXmlCodePoint converts non-ascii chars to xml code point, ignoring any non-utf8 encoding
-func toXmlCodePoint(str string) string {
+// ToXmlCodePoint converts non-ascii chars to xml code point, ignoring any non-utf8 encoding
+func ToXmlCodePoint(str string) string {
 	var sb strings.Builder
 	for _, runeValue := range str {
 		if runeValue > 127 {

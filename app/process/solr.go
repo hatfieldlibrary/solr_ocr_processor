@@ -102,7 +102,7 @@ func deleteFiles(files []model.Docs) error {
 	return nil
 }
 
-// checkSolr returns true if the index has entries for the uuid
+// CheckSolr returns true if the index has entries for the uuid
 func CheckSolr(settings model.Configuration, uuid string) (bool, error) {
 	manifestUrl := getApiEndpoint(settings.DSpaceHost, uuid, "manifest")
 
@@ -130,8 +130,8 @@ func CheckSolr(settings model.Configuration, uuid string) (bool, error) {
 	return false, nil
 }
 
-// postToSolrLazyLoad adds to solr index and writes alto file to disk. Alto file will be lazy loaded by the solr plugin
-func postToSolrLazyLoad(uuid *string, fileName string, altoFile *string, manifestId string,
+// PostToSolrLazyLoad adds to solr index and writes alto file to disk. Alto file will be lazy loaded by the solr plugin
+func PostToSolrLazyLoad(uuid *string, fileName string, altoFile *string, manifestId string,
 	settings model.Configuration, log *log.Logger) error {
 
 	var extension = filepath.Ext(fileName)
@@ -168,8 +168,8 @@ func postToSolrLazyLoad(uuid *string, fileName string, altoFile *string, manifes
 
 }
 
-// postToSolr add the miniOcr content directly to the solr index. No lazy loading.
-func postToSolr(uuid *string, fileName string, miniOcr *string, manifestId string,
+// PostToSolr add the miniOcr content directly to the solr index. No lazy loading.
+func PostToSolr(uuid *string, fileName string, miniOcr *string, manifestId string,
 	settings model.Configuration, log *log.Logger) error {
 	var extension = filepath.Ext(fileName)
 	solrId := *uuid + "-" + fileName[0:len(fileName)-len(extension)]

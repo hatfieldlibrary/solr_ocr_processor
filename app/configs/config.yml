@@ -1,9 +1,9 @@
 http_port:
   # The port used by the http service.
   "3000"
-# IP addresses of whitelisted hosts. If the list is empty, all IP's can access the http service.
-# Example: ["127.0.0.1", "192.168.0.1"]
 ip_whitelist:
+  # IP addresses of whitelisted hosts. If the list is empty, all IP's can access the http service.
+  # Example: ["127.0.0.1", "192.168.0.1"]
   []
 dspace_host:
   # The DSpace api base url (no trailing slash)
@@ -15,21 +15,23 @@ solr_core:
   # The solr core name.
   "word_highlighting"
 miniocr_conversion:
-  # Covert input file type (ALTO or hOCR) to MiniOcr format.
-  false
+  # Covert input file format (ALTO or hOCR) to the MiniOcr format. Recommended.
+  true
 index_type:
-  # You can use "lazy" or "full" indexing. If you choose "lazy" indexing the highlighter plugin
+  # You can use "lazy" or "full" indexing. If you choose "lazy" indexing the solr plugin
   # will retrieve ocr files from disk (lazy load) for each search result. This results in a
   # significantly smaller index but can have an effect on performance.
-  # to disk
+  # NOTE: If you choose full indexing you must update the solr schema.xml by commenting out
+  # or removing the ExternalUtf8ContentFilterFactory charFilter.
   "lazy"
 escape_utf8:
   # When "lazy" loading ocr files from disk you can improve performance by converting utf8 to xml-encoded
   # ascii strings. This setting is only applied if you have also chosen "lazy" indexing. Converting to
-  # ascii reduces CPU load when lazy loading word highlights.
+  # ascii reduces CPU load when lazy loading word highlights. If you choose this conversion be sure
+  # to update DSpace IIIF configuration for encoding all search queries.
   false
 xml_file_location:
-  # The path used for lazy index files. Solr will read ocr files from this directory if "lazy" indexing is used.
+  # The path used for OCR files on disk. Solr will read ocr files from this directory if "lazy" indexing is used.
   "/var/ocr_files"
 
 log_dir:

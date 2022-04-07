@@ -58,7 +58,11 @@ DSpace 7.x should eventually include OS-specific directories with starter config
 
 In the meantime, you can build from source.
 
-`go build main.go -o /output/directory`
+`go build -o /output/directory main.go `
+
+For a specific platform:
+
+`env GOOS=<target-OS> GOARCH=<target-architecture> go build -o /output/directory main.go `
 
 #### Docker
 

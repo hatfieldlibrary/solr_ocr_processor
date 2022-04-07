@@ -46,5 +46,6 @@ func GetOcrFormat(chunk string) Format {
 			return MiniocrFormat
 		}
 	}
+
 	return UnknownFormat
 }

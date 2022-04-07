@@ -6,6 +6,7 @@ import (
 )
 
 type OcrProcessor interface {
+	// ProcessOcr implements transformations and loading of OCR files.
 	ProcessOcr(uuid *string, fileName string, alto *string, position int,
 		manifestId string, settings model.Configuration, log *log.Logger) error
 }

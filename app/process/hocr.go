@@ -31,12 +31,12 @@ func (processor HocrProcessor) ProcessOcr(uuid *string, fileName string, ocr *st
 	if settings.IndexType == "lazy" {
 		err = PostToSolrLazyLoad(uuid, fileName, updatedOcr, manifestId, settings, log)
 		if err != nil {
-			return errors.New("solr indexing failed: " + err.Error())
+			return errors.New("hOCR indexing failed: " + err.Error())
 		}
 	} else {
 		err = PostToSolr(uuid, fileName, updatedOcr, manifestId, settings, log)
 		if err != nil {
-			return errors.New("solr indexing failed: " + err.Error())
+			return errors.New("hOCR indexing failed: " + err.Error())
 		}
 	}
 	return nil
@@ -174,8 +174,7 @@ func convert(original *string, position int, settings model.Configuration) (*str
 		return nil, err
 	}
 	out := string(marshalledXml)
-	out = xml.Header + out
-	if settings.IndexType == "full" {
+	if settings.IndexType == "full" && settings.ConvertToMiniOcr == false {
 		// use single quotes to submit the XML in solr post
 		out = strings.ReplaceAll(out, "\"", "'")
 	}
@@ -208,7 +207,11 @@ func updateXML(ocr *string, position int, settings model.Configuration) (*string
 		}
 
 		switch t := token.(type) {
-
+		case xml.Comment:
+			if err := encoder.EncodeToken(t); err != nil {
+				return nil, err
+			}
+			continue
 		case xml.CharData:
 			if xmlEncodeWord && len(t) > 0 {
 				escaped := []byte(ToXmlCodePoint(string(t)))
@@ -216,6 +219,7 @@ func updateXML(ocr *string, position int, settings model.Configuration) (*string
 				if err := encoder.EncodeToken(t); err != nil {
 					return nil, err
 				}
+				xmlEncodeWord = false
 				continue
 			}
 
@@ -231,7 +235,11 @@ func updateXML(ocr *string, position int, settings model.Configuration) (*string
 			}
 
 			if hasClassValue(t, "ocrx_word") && settings.EscapeUtf8 && settings.IndexType == "lazy" {
+				if err := encoder.EncodeToken(t); err != nil {
+					return nil, err
+				}
 				xmlEncodeWord = true
+				continue
 			}
 
 		}
@@ -245,26 +253,9 @@ func updateXML(ocr *string, position int, settings model.Configuration) (*string
 
 	}
 	out := buffer.String()
+	out = strings.ReplaceAll(out, "\n", "")
 	if settings.IndexType == "full" {
 		out = strings.ReplaceAll(out, "\"", "'")
 	}
 	return &out, nil
-}
-
-func getPosition(elem xml.StartElement, str string) int {
-	for i := range elem.Attr {
-		if elem.Attr[i].Name.Local == str {
-			return i
-		}
-	}
-	return -1
-}
-
-func hasClassValue(elem xml.StartElement, str string) bool {
-	for i := range elem.Attr {
-		if elem.Attr[i].Value == str {
-			return true
-		}
-	}
-	return false
 }

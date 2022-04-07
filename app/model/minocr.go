@@ -12,7 +12,7 @@ type OcrEl struct {
 type P struct {
 	XMLName    xml.Name `xml:"p"`
 	Id         string   `xml:"xml:id,attr"`
-	Dimensions string   `xml:"wh,attr"`
+	Dimensions string   `xml:"wh,attr,omitempty"`
 	Blocks     []B      `xml:"b"`
 }
 

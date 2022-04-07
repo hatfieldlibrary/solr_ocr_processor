@@ -24,91 +24,72 @@ func (processor AltoProcessor) ProcessOcr(uuid *string, fileName string, alto *s
 		}
 	}
 	if settings.IndexType == "lazy" {
-		err = postToSolrLazyLoad(uuid, fileName, updatedOcr, manifestId, settings, log)
+		err = PostToSolrLazyLoad(uuid, fileName, updatedOcr, manifestId, settings, log)
 		if err != nil {
-			return errors.New("solr indexing failed: " + err.Error())
+			return errors.New("ALTO indexing failed: " + err.Error())
 		}
 	} else {
-		err = postToSolr(uuid, fileName, updatedOcr, manifestId, settings, log)
+		err = PostToSolr(uuid, fileName, updatedOcr, manifestId, settings, log)
 		if err != nil {
-			return errors.New("solr indexing failed: " + err.Error())
+			return errors.New("ALTO indexing failed: " + err.Error())
 		}
 	}
 	return nil
 }
 
-func encodeStrings(strings []model.String) {
-	for i, _ := range strings {
-		strings[i].CONTENT = toXmlCodePoint(strings[i].CONTENT)
-	}
-}
-func getTextLines(textLines []model.TextLine) {
-	for i, _ := range textLines {
-		encodeStrings(textLines[i].String)
-	}
-}
-func getTextBlocks(textBlocks []model.TextBlock) {
-	for i, _ := range textBlocks {
-		getTextLines(textBlocks[i].TextLine)
-	}
-}
-func getComposedBlocks(composedBlocks []model.ComposedBlock) {
-	for i, _ := range composedBlocks {
-		getTextBlocks(composedBlocks[i].TextBlock)
-	}
-}
-
+// updateAlto sets the Page identifier and if required by configuration coverts unicode
+// characters.
 func updateAlto(alto *string, position int, settings model.Configuration) (*string, error) {
 	var buffer bytes.Buffer
 	reader := strings.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
 	encoder := xml.NewEncoder(&buffer)
 
-	escape := settings.EscapeUtf8 && settings.IndexType == "lazy"
-
 	for {
-		token, err := decoder.Token()
+		token, err := decoder.RawToken()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			log.Printf("error getting token: %t\n", err)
 			return nil, err
-			break
 		}
 
 		switch t := token.(type) {
 		case xml.StartElement:
-			if t.Name.Local == "alto" {
-				var model model.Alto
-				if err = decoder.DecodeElement(&model, &t); err != nil {
-					log.Fatal(err)
+			if t.Name.Local == "Page" {
+				id := "Page." + strconv.Itoa(position)
+				pos := getPosition(t, "ID")
+				t.Attr[pos].Value = id
+				if err := encoder.EncodeToken(t); err != nil {
+					return nil, err
 				}
-				t.Attr = t.Attr[:0]
-				model.Xmlns = ""
-				model.Layout.Page.Id = "Page." + strconv.Itoa(position)
-				if escape {
-					getComposedBlocks(model.Layout.Page.PrintSpace.ComposedBlock)
-					getTextBlocks(model.Layout.Page.PrintSpace.TextBlock)
-				}
-				if err = encoder.EncodeElement(model, t); err != nil {
-					log.Fatal(err)
+				continue
+			}
+
+			if t.Name.Local == "String" && settings.EscapeUtf8 && settings.IndexType == "lazy" {
+				pos := getPosition(t, "CONTENT")
+				t.Attr[pos].Value = ToXmlCodePoint(t.Attr[pos].Value)
+				if err := encoder.EncodeToken(t); err != nil {
+					return nil, err
 				}
 				continue
 			}
 		}
+		if err := encoder.EncodeToken(xml.CopyToken(token)); err != nil {
+			return nil, err
+		}
 
 	}
 
-	// must call flush, otherwise some elements will be missing
 	if err := encoder.Flush(); err != nil {
 		log.Fatal(err)
 	}
 
 	out := buffer.String()
-
-	if settings.IndexType == "full" {
-		// Use single quotes in XML so that we submit in json. Note
+	out = strings.ReplaceAll(out, "\n", "")
+	if settings.IndexType == "full" && settings.ConvertToMiniOcr == false {
+		// Use single quotes in XML so that we can submit in json. Note
 		// that full indexing of ALTO is not advised. The more
 		// compact miniocr format is preferred.
 		out = strings.ReplaceAll(out, "\"", "'")
@@ -138,7 +119,6 @@ func convertToMiniOcr(original *string, position int, settings model.Configurati
 		}
 		if err != nil {
 			return nil, err
-			break
 		}
 
 		switch t := token.(type) {
@@ -186,11 +166,12 @@ func convertToMiniOcr(original *string, position int, settings model.Configurati
 				hpos := t.Attr[4]
 				var str = ""
 				if escape {
-					str = toXmlCodePoint(content.Value)
+					str = ToXmlCodePoint(content.Value)
 				} else {
 					str = content.Value
 				}
-				if len(str) > 0 {
+
+				if len(content.Value) > 0 {
 					coordinates := hpos.Value + " " + vpos.Value + " " + width.Value + " " + height.Value
 					wordElement := model.W{CoorinateAttr: coordinates, Content: str + " "}
 					lastPage := &ocr.Pages[len(ocr.Pages)-1]
@@ -210,7 +191,6 @@ func convertToMiniOcr(original *string, position int, settings model.Configurati
 		return nil, err
 	}
 	out := string(marshalledXml)
-	out = xml.Header + out
 	if settings.IndexType == "full" {
 		// use single quotes to submit the XML in solr post
 		out = strings.ReplaceAll(out, "\"", "'")
