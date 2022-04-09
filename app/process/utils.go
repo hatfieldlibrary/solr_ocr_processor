@@ -27,6 +27,8 @@ func hasClassValue(elem xml.StartElement, str string) bool {
 }
 
 // fixResponse converts double so single quotes and other cleanup when full indexing is requested.
+// This utility function has no effect when Configuration requires subsequent conversion to
+// MiniOcr format.
 func fixResponse(input *string, settings model.Configuration) *string {
 	if settings.IndexType == "full" && settings.ConvertToMiniOcr == false {
 		tmp := strings.ReplaceAll(*input, "\n", "")

@@ -64,6 +64,7 @@ func GetOcrXml(url string, log *log.Logger) ([]byte, error) {
 	return responseReader(resp.Body)
 }
 
+// responseReader returns the body of the Http response as a byte array.
 func responseReader(reader io.ReadCloser) ([]byte, error) {
 	defer reader.Close()
 	body, err := io.ReadAll(reader)
