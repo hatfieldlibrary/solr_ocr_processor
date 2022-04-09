@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -21,7 +22,8 @@ type AddItem struct{}
 
 type DeleteItem struct{}
 
-// IndexerAction tests whether item is already in the Solr index.
+// IndexerAction implements the handler interface for GetItem. It is used to test whether OCR files for the
+// DSpace Item UUID are already in the Solr index.
 func (axn GetItem) IndexerAction(settings *model.Configuration, uuid *string, log *log.Logger) error {
 	exists, err := process.CheckSolr(*settings, *uuid)
 	if err != nil {
@@ -35,7 +37,8 @@ func (axn GetItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 	return nil
 }
 
-// IndexerAction adds item to Solr index and writes to file system if lazy loading is used
+// IndexerAction implements the handler interface for AddItem. It indexes OCR files for a given DSpace
+// Item UUID and writes files to disk if lazy loading is requested via configuration.
 func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, log *log.Logger) error {
 	manifestJson, err := process.GetManifest(settings.DSpaceHost, *uuid, log)
 	if err != nil {
@@ -60,11 +63,14 @@ func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 		err := UnProcessableEntity{CAUSE: "no annotations exist for this item, nothing to process"}
 		return err
 	}
-	// Create ordered list of file names using either the METS file (named mets.xml) or the DSpace bundle's bitstream
-	// order. The processing order defines page identifiers that match canvas identifiers in the
-	// IIIF manifest. If these do not align, search results and word highlighting will be incorrect. The METS
-	// file is a good way to assure correct order. Without it, you must guarantee that OCR bitstreams in the DSpace
-	// OtherContent bundle (used for seeAlso annotations) are ordered correctly.
+	// Create an ordered list of file names using either the METS file (named mets.xml) or the DSpace bundle's
+	// bitstream order.
+	//
+	// Processing order determines the page identifiers for Solr index entries. These must match canvas identifiers
+	// in the IIIF manifest. If these identifiers do not align, search results and word highlighting will be incorrect.
+	// The METS file is a good way to assure correct order. Or, you can guarantee that OCR bitstreams in the DSpace
+	// OtherContent bundle (used for IIIF seeAlso annotations) were loaded in the correct order during DSpace Item
+	// creation.
 	var ocrFiles []string
 	if metsReader, err := getMetsFileReader(annotationsMap["mets.xml"], log); err == nil {
 		ocrFiles = getMetsOcrFileNames(metsReader)
@@ -74,20 +80,22 @@ func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 	var format process.Format
 	// traverse though ordered list of file names
 	for i := 0; i < len(ocrFiles); i++ {
-		var ocr string
+		var ocr []byte
 		if len(ocrFiles[i]) > 0 {
-			// fetch the OCR file from DSpace
+			// fetch the OCR from DSpace
 			ocr, err = process.GetOcrXml(annotationsMap[ocrFiles[i]], log)
 			if err != nil {
 				return err
 			}
+			ocrString := string(ocr)
 			// get the OCR file format based on 1200 character sample
 			var chunk string
 			if len(ocr) > 1200 {
-				chunk = ocr[0:1200]
+				chunk = ocrString[0:1200]
 			} else {
-				chunk = ocr
+				chunk = ocrString
 			}
+			// Detect the OCR file format.
 			format = process.GetOcrFormat(chunk)
 		}
 		if len(ocr) != 0 {
@@ -116,7 +124,8 @@ func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 	return nil
 }
 
-// IndexerAction deletes all records for manifest from the Solr index and deletes files if lazy loading is used.
+// IndexerAction implements the handler interface for DeleteItem. It deletes all OCR files
+// from the Solr index for a given DSpace Item UUID and removes files from disk if lazy loading is used.
 func (axn DeleteItem) IndexerAction(settings *model.Configuration, uuid *string, log *log.Logger) error {
 	err := process.DeleteFromSolr(*settings, *uuid)
 	if err != nil {
@@ -132,11 +141,11 @@ func getMetsFileReader(identifier string, log *log.Logger) (io.Reader, error) {
 	if len(identifier) == 0 {
 		return nil, errors.New("an iiif identifier was not found for the mets.xml file")
 	}
-	metsReader, err := process.GetMetsXml(identifier, log)
+	metsResponse, err := process.GetMetsXml(identifier, log)
 	if err != nil {
 		return nil, err
 	}
-	return metsReader, nil
+	return bytes.NewReader(metsResponse), nil
 }
 
 // getOcrFilesFromAnnotationList creates the array of file names from the ResourceAnnotation list

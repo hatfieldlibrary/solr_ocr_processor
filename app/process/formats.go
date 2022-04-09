@@ -30,6 +30,7 @@ func (f Format) String() string {
 	return "unknown"
 }
 
+// GetOcrFormat detects the OCR Format type by matching on the provided substring.
 func GetOcrFormat(chunk string) Format {
 	for i := 0; i < len(AltoMatchers); i++ {
 		if strings.Contains(chunk, AltoMatchers[i]) {

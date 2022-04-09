@@ -16,7 +16,7 @@ import (
 var pageBBox = regexp.MustCompile(`bbox 0 0 (\d+) (\d+)`)
 var wordBBox = regexp.MustCompile(`bbox (\d+) (\d+) (\d+) (\d+)`)
 
-func (processor HocrProcessor) ProcessOcr(uuid *string, fileName string, ocr *string, position int,
+func (processor HocrProcessor) ProcessOcr(uuid *string, fileName string, ocr *[]byte, position int,
 	manifestId string, settings model.Configuration, log *log.Logger) error {
 	updatedOcr, err := updateXML(ocr, position, settings)
 	if err != nil {
@@ -183,14 +183,16 @@ func convert(original *string, position int, settings model.Configuration) (*str
 }
 
 // updateXML sets the hOCR page ID and converts unicode to XML-escaped codepoints when require by configuration.
-func updateXML(ocr *string, position int, settings model.Configuration) (*string, error) {
+func updateXML(hocr *[]byte, position int, settings model.Configuration) (*string, error) {
 
+	// There is no need to update when full indexing without character conversion is requested.
 	if !settings.EscapeUtf8 && settings.IndexType != "lazy" {
-		return ocr, nil
+		out := string(*hocr)
+		return &out, nil
 	}
 
 	var buffer bytes.Buffer
-	reader := bytes.NewReader([]byte(*ocr))
+	reader := bytes.NewReader(*hocr)
 	decoder := xml.NewDecoder(reader)
 	encoder := xml.NewEncoder(&buffer)
 
@@ -253,9 +255,6 @@ func updateXML(ocr *string, position int, settings model.Configuration) (*string
 
 	}
 	out := buffer.String()
-	out = strings.ReplaceAll(out, "\n", "")
-	if settings.IndexType == "full" {
-		out = strings.ReplaceAll(out, "\"", "'")
-	}
-	return &out, nil
+	updated := fixResponse(&out, settings)
+	return updated, nil
 }

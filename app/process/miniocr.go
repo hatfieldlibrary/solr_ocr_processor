@@ -8,10 +8,9 @@ import (
 	"io"
 	"log"
 	"strconv"
-	"strings"
 )
 
-func (processor MiniOcrProcessor) ProcessOcr(uuid *string, fileName string, ocr *string, position int,
+func (processor MiniOcrProcessor) ProcessOcr(uuid *string, fileName string, ocr *[]byte, position int,
 	manifestId string, settings model.Configuration, log *log.Logger) error {
 
 	miniOcr, err := updateXml(ocr, position, settings)
@@ -35,7 +34,7 @@ func (processor MiniOcrProcessor) ProcessOcr(uuid *string, fileName string, ocr 
 }
 
 // updateXML updates the page ID and converts unicode to XML-encoded codepoint, if required by configuration.
-func updateXml(ocr *string, position int, settings model.Configuration) (*string, error) {
+func updateXml(ocr *[]byte, position int, settings model.Configuration) (*string, error) {
 	var buffer bytes.Buffer
 	reader := bytes.NewReader([]byte(*ocr))
 	decoder := xml.NewDecoder(reader)
@@ -95,11 +94,7 @@ func updateXml(ocr *string, position int, settings model.Configuration) (*string
 	}
 
 	out := buffer.String()
-	out = strings.ReplaceAll(out, "\n", "")
-	if settings.IndexType == "full" {
-		out = strings.ReplaceAll(out, "\"", "'")
-	}
-
-	return &out, nil
+	updated := fixResponse(&out, settings)
+	return updated, nil
 
 }

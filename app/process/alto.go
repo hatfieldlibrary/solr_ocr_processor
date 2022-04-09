@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func (processor AltoProcessor) ProcessOcr(uuid *string, fileName string, alto *string, position int,
+func (processor AltoProcessor) ProcessOcr(uuid *string, fileName string, alto *[]byte, position int,
 	manifestId string, settings model.Configuration, log *log.Logger) error {
 	updatedOcr, err := updateAlto(alto, position, settings)
 	if err != nil {
@@ -39,9 +39,16 @@ func (processor AltoProcessor) ProcessOcr(uuid *string, fileName string, alto *s
 
 // updateAlto sets the Page identifier and if required by configuration coverts unicode
 // characters.
-func updateAlto(alto *string, position int, settings model.Configuration) (*string, error) {
+func updateAlto(alto *[]byte, position int, settings model.Configuration) (*string, error) {
+
+	// There is no need to date when full indexing without character conversion is requested.
+	if !settings.EscapeUtf8 && settings.IndexType != "lazy" {
+		out := string(*alto)
+		return &out, nil
+	}
+
 	var buffer bytes.Buffer
-	reader := strings.NewReader(*alto)
+	reader := bytes.NewReader(*alto)
 	decoder := xml.NewDecoder(reader)
 	encoder := xml.NewEncoder(&buffer)
 
@@ -87,14 +94,8 @@ func updateAlto(alto *string, position int, settings model.Configuration) (*stri
 	}
 
 	out := buffer.String()
-	out = strings.ReplaceAll(out, "\n", "")
-	if settings.IndexType == "full" && settings.ConvertToMiniOcr == false {
-		// Use single quotes in XML so that we can submit in json. Note
-		// that full indexing of ALTO is not advised. The more
-		// compact miniocr format is preferred.
-		out = strings.ReplaceAll(out, "\"", "'")
-	}
-	return &out, nil
+	updated := fixResponse(&out, settings)
+	return updated, nil
 
 }
 

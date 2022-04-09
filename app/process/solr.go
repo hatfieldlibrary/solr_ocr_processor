@@ -16,12 +16,10 @@ import (
 	"strings"
 )
 
-// refactor delete to use coroutine
 
 // DeleteFromSolr removes all entries from the solr index for a uuid and (if lazy) removes ocr files from disk.
 func DeleteFromSolr(settings model.Configuration, uuid string) error {
-	manifestUrl := getApiEndpoint(settings.DSpaceHost, uuid, "manifest")
-
+	manifestUrl := getDSpaceApiEndpoint(settings.DSpaceHost, uuid, "manifest")
 	var files []model.Docs
 	var fileError error
 	if settings.IndexType == "lazy" {
@@ -30,12 +28,10 @@ func DeleteFromSolr(settings model.Configuration, uuid string) error {
 			return fileError
 		}
 	}
-
 	err := deleteSolrEntries(settings, manifestUrl)
 	if err != nil {
 		return err
 	}
-
 	if settings.IndexType == "lazy" {
 		err = deleteFiles(files)
 		if err != nil {
@@ -58,7 +54,6 @@ func deleteSolrEntries(settings model.Configuration, manifestUrl string) error {
 	json.NewEncoder(payloadBuf).Encode(solrPostBody)
 	req, err := http.NewRequest("POST", deleteEndPoint, payloadBuf)
 	req.Header.Set("Content-Type", "application/json")
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -76,7 +71,6 @@ func getFiles(settings model.Configuration, manifestUrl string) ([]model.Docs, e
 	payloadBuf := new(bytes.Buffer)
 	req, err := http.NewRequest("GET", solrUrl, payloadBuf)
 	req.Header.Set("Content-Type", "application/json")
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -104,8 +98,7 @@ func deleteFiles(files []model.Docs) error {
 
 // CheckSolr returns true if the index has entries for the uuid
 func CheckSolr(settings model.Configuration, uuid string) (bool, error) {
-	manifestUrl := getApiEndpoint(settings.DSpaceHost, uuid, "manifest")
-
+	manifestUrl := getDSpaceApiEndpoint(settings.DSpaceHost, uuid, "manifest")
 	solrUrl := fmt.Sprintf("%s/%s/select?fl=manifest_url&q=manifest_url:%s",
 		settings.SolrUrl, settings.SolrCore, url.QueryEscape("\""+manifestUrl+"\""))
 	payloadBuf := new(bytes.Buffer)
@@ -133,7 +126,6 @@ func CheckSolr(settings model.Configuration, uuid string) (bool, error) {
 // PostToSolrLazyLoad adds to solr index and writes alto file to disk. Alto file will be lazy loaded by the solr plugin
 func PostToSolrLazyLoad(uuid *string, fileName string, altoFile *string, manifestId string,
 	settings model.Configuration, log *log.Logger) error {
-
 	var extension = filepath.Ext(fileName)
 	solrId := *uuid + "-" + fileName[0:len(fileName)-len(extension)]
 	path := settings.XmlFileLocation + "/" + solrId + ".xml"
@@ -184,7 +176,6 @@ func PostToSolr(uuid *string, fileName string, miniOcr *string, manifestId strin
 	solrUrl := fmt.Sprintf("%s/%s/update/json/docs", settings.SolrUrl, settings.SolrCore)
 	req, err := http.NewRequest("POST", solrUrl, payloadBuf)
 	req.Header.Set("Content-Type", "application/json")
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

@@ -1,16 +1,22 @@
 package process
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"github.com/mspalti/ocrprocessor/model"
+	"strings"
+)
 
-func getPosition(elem xml.StartElement, str string) int {
+// getPosition returns the position of the attribute in the token attribute list.
+func getPosition(elem xml.StartElement, attribute string) int {
 	for i := range elem.Attr {
-		if elem.Attr[i].Name.Local == str {
+		if elem.Attr[i].Name.Local == attribute {
 			return i
 		}
 	}
 	return -1
 }
 
+// hasClassValue return true if the class is found in the token attribute list
 func hasClassValue(elem xml.StartElement, str string) bool {
 	for i := range elem.Attr {
 		if elem.Attr[i].Value == str {
@@ -18,4 +24,19 @@ func hasClassValue(elem xml.StartElement, str string) bool {
 		}
 	}
 	return false
+}
+
+// fixResponse converts double so single quotes and other cleanup when full indexing is requested.
+func fixResponse(input *string, settings model.Configuration) *string {
+	if settings.IndexType == "full" && settings.ConvertToMiniOcr == false {
+		tmp := strings.ReplaceAll(*input, "\n", "")
+		tmp = strings.ReplaceAll(tmp, "\"", "'")
+		return &tmp
+	}
+	return input
+}
+
+// getDSpaceApiEndpoint returns the URL for the DSpace IIIF endpoint
+func getDSpaceApiEndpoint(host string, uuid string, iiiftype string) string {
+	return host + "/iiif/" + uuid + "/" + iiiftype
 }
