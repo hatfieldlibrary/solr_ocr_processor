@@ -27,7 +27,7 @@ retrieved from DSpace using the DSpace IIIF integration.
 * **log_dir**: Path to the log directory
 
 #### Requirements
-* Go 1.16.15+
+* Go 1.16.15+ (if you are building your own binary and not using a distributed version)
 * DSpace 7+
 * Solr OCR Highlighting Plugin v0.7.2+
 
