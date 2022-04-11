@@ -9,10 +9,10 @@ retrieved from DSpace using the DSpace IIIF integration.
 
 #### Supports
 * GET, POST, and DELETE methods
-* Addition of `MiniOcr`, `hOCR` or `ALTO` to the index with "full" or "lazy" indexing (with optional XML-encoding of Unicode characters), via POST.
+* Adding `MiniOcr`, `hOCR` or `ALTO` files to the Solr index with "full" or "lazy" indexing (and optional XML-encoding of Unicode characters).
 * Conversion of `hOCR` and `ALTO` files to `MiniOcr`.
-* Checks for whether OCR files have been indexed, via GET.
-* Removal of OCR files from the index and the file system if "lazy" indexing was used, via DELETE.
+* Checks for whether OCR files for a DSpace Item have already been indexed.
+* Removal of OCR files from the index, and from the file system if "lazy" indexing was used.
 
 #### Configuration Options
 * **http_port**: listen port of service
