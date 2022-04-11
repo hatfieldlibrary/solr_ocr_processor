@@ -26,6 +26,11 @@ retrieved from DSpace using the DSpace IIIF integration.
 * **xml_file_location**: Path to OCR files (when "lazy" indexing used)
 * **log_dir**: Path to the log directory
 
+#### Requirements
+* Go 1.16.15+
+* DSpace 7+
+* Solr OCR Highlighting Plugin v0.7.2+
+
 #### Overview
 The service works in conjunction with DSpace 7.x IIIF support. 
 
