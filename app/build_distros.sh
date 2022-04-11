@@ -25,7 +25,7 @@ for PLATFORM in $PLATFORMS; do
   echo "${CMD}"
   if [[ "${GOOS}" == "windows" ]]; then BIN_FILENAME="${BIN_FILENAME}.exe"; fi
   CMD="GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${BIN_PATH}/${OUTPUT_DIR}/${BIN_FILENAME} main.go
-    && cp -n ${DISTROS}/${OUTPUT_DIR}/config.yml ${BIN_PATH}/${OUTPUT_DIR}/
+    && cp -n ${DISTROS}/config.yml ${BIN_PATH}/${OUTPUT_DIR}/
     && tar -cf ${BIN_PATH}/${OUTPUT_DIR}.tar ${BIN_PATH}/${OUTPUT_DIR}/${BIN_FILENAME}"
   echo "${CMD}"
   eval $CMD || FAILURES="${FAILURES} ${PLATFORM}"
