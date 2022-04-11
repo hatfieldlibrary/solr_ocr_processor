@@ -124,7 +124,7 @@ func handleError(err error, response http.ResponseWriter, code int) {
 }
 
 func getLogFile(config *Configuration) (*os.File, error) {
-	path := config.LogDir + "/alto_indexer.log"
+	path := config.LogDir + "/ocr_processor.log"
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0775)
 	return file, err
 }
