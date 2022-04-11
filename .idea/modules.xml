@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/go_ocr_processor.iml" filepath="$PROJECT_DIR$/go_ocr_processor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/solr_ocr_processor.iml" filepath="$PROJECT_DIR$/.idea/solr_ocr_processor.iml" />
     </modules>
   </component>
 </project>
