@@ -41,8 +41,8 @@ func (processor AltoProcessor) ProcessOcr(uuid *string, fileName string, alto *[
 // characters.
 func updateAlto(alto *[]byte, position int, settings model.Configuration) (*string, error) {
 
-	// There is no need to date when full indexing without character conversion is requested.
-	if !settings.EscapeUtf8 && settings.IndexType != "lazy" {
+	// There is no need to update when full indexing or no character conversion is requested.
+	if settings.IndexType != "lazy" && !settings.EscapeUtf8 {
 		out := string(*alto)
 		return &out, nil
 	}

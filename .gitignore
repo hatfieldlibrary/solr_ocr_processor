@@ -1,4 +1,2 @@
-bin
-logs
+.DS_Store
 app/bin
-app/logs/alto_indexer.log
