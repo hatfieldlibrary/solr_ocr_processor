@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-const configFilePath = "./configs"
+const configFilePath = "."
 
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
