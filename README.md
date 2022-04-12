@@ -49,7 +49,7 @@ You must add the solr-ocrhighlighting plugin to Solr. See the instructions: http
 
 You need an IIIF-enabled DSpace instance. Your DSpace `Items` must be individually enabled for IIIF and search via 
 the metadata fields `dspace-iiif-enabled` and `iiif-search-enabled`. The Item's OCR files must be
-in the DSpace Item's `OtherContent` Bundle. If your processing order is determined by structural metadata, be sure
+in the DSpace Item's `OtherContent` Bundle. If your processing order is determined by METS metadata, be sure
 to name your structural metadata file `mets.xml`. If this file does not exist or has not been correctly named, 
 processing order is determined by the order of OCR files in the `OtherContent` Bundle.
 
