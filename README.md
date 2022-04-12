@@ -77,7 +77,7 @@ Pull from Docker Hub:
 
 Example of running the container with volumes (Linux).
 
-`docker run -d -user <host_user_GID> --network host -v /host/path/to/configs:/processor/configs -v /host/path/to/logs:/var/log/ocr_processor -v /path/escaped/alto/files:/var/ocr_files mspalti/ocrprocessor`
+` docker run -d -u <host_user_GID> --network host --name ocr_processor -v /host/path/to/config:/processor -v /host/path/to/log:/var/log/ocr_processor -v /path/to/ocr_files:/var/ocr_files mspalti/ocr_processor`
 
 Note that you don't need to create a volume for the `/var/ocr_files` mount point if you aren't using "lazy" indexing. 
 
