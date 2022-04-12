@@ -31,7 +31,7 @@ retrieved from DSpace using the DSpace IIIF integration.
 * DSpace 7+
 * Solr OCR Highlighting Plugin v0.7.2+
 
-#### Overview
+## Overview
 The service works in conjunction with DSpace 7.x IIIF support. 
 
 When indexing a new item, the service retrieves an IIIF `AnnotationList` of OCR files from the 
@@ -57,19 +57,24 @@ See DSpace IIIF documentation: https://wiki.lyrasis.org/display/DSDOC7x/IIIF+Con
 
 ## Installation
 
-#### Binary Files:
+#### Solr Core
 
-DSpace 7.x should eventually include OS-specific directories with starter configuration files and a Solr core that's pre-configured for the `solr-ocrhighlighting` plugin.
+Add the word_highlighting plugin to your Solr cores. DSpace 7.x may eventually include a starter core for you to use. In the 
+meantime, see the `solr-ocrhighlighting` documentation for more details.
 
-In the meantime, you can build from source.
+#### Binary Executables files and Sample Configuration:
 
-`go build -o /output/directory main.go `
+Archive files for various platforms are provided in the [Release List](https://github.com/mspalti/solr_ocr_processor/releases).
+
+You can also build from source.
+
+`go build -o /output/directory/<filename> main.go`
 
 For a specific platform:
 
-`env GOOS=<target-OS> GOARCH=<target-architecture> go build -o /output/directory main.go `
+`env GOOS=<target-OS> GOARCH=<target-architecture> go build -o /output/directory/<filename> main.go`
 
-#### Docker
+#### Using Docker
 
 Pull from Docker Hub:
 
@@ -90,14 +95,18 @@ indexing.
 
 ## Usage
 
-POST, DELETE, or GET requests use the identifier of a DSpace Item as follows: 
+POST, DELETE, or GET requests use the identifier of a DSpace `Item` as follows: 
 
 `http://<host>:3000/item/413065ef-e242-4d0e-867d-8e2f6486be56`
 
+* GET returns 200 if the DSpace `Item` is in the Solr index and 404 if it has not yet been added.
+* DELETE removes all Solr index entries for the DSpace `Item` and OCR files from disk for "lazy" indexing.
+* POST adds all OCR files for the DSpace `Item` to the index.
+
 ### DSpace command line tool (under development)
 
-A DSpace CLI tool is currently being considered. That tool uses this service to add or delete OCR from the
-Solr index. The tool allows batch updates at the Community or Collection levels, as well as individual Item 
+A DSpace CLI tool is being considered. That tool uses this service to add or delete OCR from the
+Solr index. The CLI tool allows batch updates at the Community or Collection levels, as well as individual Item 
 updates. 
 
 Usage:
