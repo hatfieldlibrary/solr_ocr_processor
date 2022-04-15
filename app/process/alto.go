@@ -7,6 +7,7 @@ import (
 	"github.com/mspalti/ocrprocessor/model"
 	"io"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -52,7 +53,19 @@ func updateAlto(alto *[]byte, position int, settings model.Configuration) (*stri
 	decoder := xml.NewDecoder(reader)
 	encoder := xml.NewEncoder(&buffer)
 
+	var dpiMatcher = regexp.MustCompile(`xdpi:(\d+)`)
+
+	// These control conversion from inch1200 to pixel units
+	// This will be attempted for every ALTO file in which the
+	// MeasurementUnit is set to 'inch1200'
+	checkUnit := false
+	convertInchToPixel := false
+	convertMM10ToPixel := false
+	lookForDpi := false
+	dpiValue := -1
+
 	for {
+
 		token, err := decoder.RawToken()
 		if err == io.EOF {
 			break
@@ -63,26 +76,90 @@ func updateAlto(alto *[]byte, position int, settings model.Configuration) (*stri
 		}
 
 		switch t := token.(type) {
+		case xml.CharData:
+
+			str := string(t)
+			if checkUnit {
+				if str == "inch1200" {
+					convertInchToPixel = true
+					t = []byte("pixel")
+				}
+				if str == "mm10" {
+					convertMM10ToPixel = true
+					t = []byte("pixel")
+				}
+				checkUnit = false
+			}
+			if lookForDpi {
+				dpi := dpiMatcher.FindSubmatch([]byte(str))
+				dpiValue, err = strconv.Atoi(string(dpi[1]))
+				if err != nil {
+					return nil, err
+				}
+				lookForDpi = false
+			}
+
 		case xml.StartElement:
+			if t.Name.Local == "MeasurementUnit" {
+				checkUnit = true
+			}
+			if t.Name.Local == "processingStepSettings" {
+				lookForDpi = true
+			}
 			if t.Name.Local == "Page" {
 				id := "Page." + strconv.Itoa(position)
-				pos := getPosition(t, "ID")
-				t.Attr[pos].Value = id
+				idPos := getPosition(t, "ID")
+				t.Attr[idPos].Value = id
+				if convertInchToPixel {
+					err := inchToPixel(&t, dpiValue, settings)
+					if err != nil {
+						return nil, err
+					}
+				}
+				if convertMM10ToPixel {
+					err := mmToPixel(&t)
+					if err != nil {
+						return nil, err
+					}
+				}
 				if err := encoder.EncodeToken(t); err != nil {
 					return nil, err
 				}
 				continue
 			}
 
-			if t.Name.Local == "String" && settings.EscapeUtf8 && settings.IndexType == "lazy" {
-				pos := getPosition(t, "CONTENT")
-				t.Attr[pos].Value = ToXmlCodePoint(t.Attr[pos].Value)
-				if err := encoder.EncodeToken(t); err != nil {
-					return nil, err
+			if t.Name.Local == "String" {
+				modified := false
+				if settings.EscapeUtf8 && settings.IndexType == "lazy" {
+					pos := getPosition(t, "CONTENT")
+					t.Attr[pos].Value = ToXmlCodePoint(t.Attr[pos].Value)
+					modified = true
 				}
-				continue
+				if convertMM10ToPixel || convertInchToPixel {
+					if convertInchToPixel {
+						err := inchToPixel(&t, dpiValue, settings)
+						if err != nil {
+							return nil, err
+						}
+					}
+					if convertMM10ToPixel {
+						err := mmToPixel(&t)
+						if err != nil {
+							return nil, err
+						}
+					}
+					modified = true
+				}
+				// If String token values were modified then encode now and continue.
+				if modified {
+					if err := encoder.EncodeToken(t); err != nil {
+						return nil, err
+					}
+					continue
+				}
 			}
 		}
+
 		if err := encoder.EncodeToken(xml.CopyToken(token)); err != nil {
 			return nil, err
 		}
@@ -97,6 +174,98 @@ func updateAlto(alto *[]byte, position int, settings model.Configuration) (*stri
 	updated := fixResponse(&out, settings)
 	return updated, nil
 
+}
+
+func inchToPixel(t *xml.StartElement, dpiValue int, settings model.Configuration) error {
+
+	h := getPosition(*t, "HEIGHT")
+	w := getPosition(*t, "WIDTH")
+	harr := strings.Split(t.Attr[h].Value, ".")
+	warr := strings.Split(t.Attr[w].Value, ".")
+	height, err := strconv.Atoi(harr[0])
+	if err != nil {
+		return err
+	}
+	width, err := strconv.Atoi(warr[0])
+	if err != nil {
+		return err
+	}
+	t.Attr[h].Value = convertInchDimToPixel(height, dpiValue, settings)
+	t.Attr[w].Value = convertInchDimToPixel(width, dpiValue, settings)
+
+	if t.Name.Local == "String" {
+		hp := getPosition(*t, "HPOS")
+		vp := getPosition(*t, "VPOS")
+		hposarr := strings.Split(t.Attr[hp].Value, ".")
+		vposarr := strings.Split(t.Attr[vp].Value, ".")
+		hpos, err := strconv.Atoi(hposarr[0])
+		if err != nil {
+			return err
+		}
+		vpos, err := strconv.Atoi(vposarr[0])
+		if err != nil {
+			return err
+		}
+		t.Attr[hp].Value = convertInchDimToPixel(hpos, dpiValue, settings)
+		t.Attr[vp].Value = convertInchDimToPixel(vpos, dpiValue, settings)
+	}
+
+	return nil
+}
+
+func convertInchDimToPixel(input int, dpi int, settings model.Configuration) string {
+	if dpi == -1 {
+		dpi = settings.InputImageResolution
+	}
+	dim := (input * dpi) / 1200
+	return strconv.Itoa(dim)
+}
+
+// mmToPixel updates mm10 unit values to pixels
+func mmToPixel(t *xml.StartElement) error {
+	h := getPosition(*t, "HEIGHT")
+	w := getPosition(*t, "WIDTH")
+	hp := getPosition(*t, "HPOS")
+	vp := getPosition(*t, "VPOS")
+	htmm, err := strconv.Atoi(t.Attr[h].Value)
+	if err != nil {
+		return err
+	}
+	wdmm, err := strconv.Atoi(t.Attr[w].Value)
+	if err != nil {
+		return err
+	}
+	var hposmm *int
+	var vposmm *int
+	if hp >= 0 {
+		v, err := strconv.Atoi(t.Attr[hp].Value)
+		hposmm = &v
+		if err != nil {
+			return err
+		}
+	}
+	if vp >= 0 {
+		v, err := strconv.Atoi(t.Attr[vp].Value)
+		vposmm = &v
+		if err != nil {
+			return err
+		}
+	}
+	height := 3.7795275591 * float64(htmm)
+	width := 3.7795275591 * float64(wdmm)
+	t.Attr[h].Value = strconv.Itoa(int(height))
+	t.Attr[w].Value = strconv.Itoa(int(width))
+
+	if hposmm != nil {
+		hpos := 3.7795275591 * float64(*hposmm)
+		t.Attr[hp].Value = strconv.Itoa(int(hpos))
+	}
+	if vposmm != nil {
+		vpos := 3.7795275591 * float64(*vposmm)
+		t.Attr[vp].Value = strconv.Itoa(int(vpos))
+	}
+
+	return nil
 }
 
 // convertToMiniOcr creates miniOcr output from the ALTO input.
@@ -127,8 +296,10 @@ func convertToMiniOcr(original *string, position int, settings model.Configurati
 		case xml.StartElement:
 
 			if t.Name.Local == "Page" {
-				height := t.Attr[2].Value
-				width := t.Attr[3].Value
+				h := getPosition(t, "HEIGHT")
+				w := getPosition(t, "WIDTH")
+				height := t.Attr[h].Value
+				width := t.Attr[w].Value
 				dims := width + " " + height
 				textBlockElements = nil
 				pageId := "Page." + strconv.Itoa(position)
@@ -160,11 +331,18 @@ func convertToMiniOcr(original *string, position int, settings model.Configurati
 				continue
 			}
 			if t.Name.Local == "String" {
-				content := t.Attr[0]
-				height := t.Attr[1]
-				width := t.Attr[2]
-				vpos := t.Attr[3]
-				hpos := t.Attr[4]
+				c := getPosition(t, "CONTENT")
+				h := getPosition(t, "HEIGHT")
+				w := getPosition(t, "WIDTH")
+				hp := getPosition(t, "HPOS")
+				vp := getPosition(t, "VPOS")
+
+				content := t.Attr[c]
+				height := t.Attr[h]
+				width := t.Attr[w]
+				hpos := t.Attr[hp]
+				vpos := t.Attr[vp]
+
 				var str = ""
 				if escape {
 					str = ToXmlCodePoint(content.Value)

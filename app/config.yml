@@ -33,7 +33,14 @@ escape_utf8:
 xml_file_location:
   # The path used for OCR files on disk. Solr will read ocr files from this directory if "lazy" indexing is used.
   "/var/ocr_files"
-
+input_image_resolution:
+  # ALTO files aren't required to use pixel units. If you have ALTO files that were created with units other than
+  # pixels you are advised to update your files before submitting them to be indexed. However, this service
+  # will attempt to convert 'inch1200' and 'mm10' units to pixels. When the unit is 'inch1200'
+  # the conversion is in part based on the image resolution (dpi). The service will look for the resolution
+  # in the ALTO processing elements. If it is not found, the default resolution below is used. You can change
+  # the default resolution if needed.
+  300
 log_dir:
   # The location of your log directory.
   "/var/log/ocr_processor"

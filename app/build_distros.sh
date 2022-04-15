@@ -1,8 +1,11 @@
+
 #!/bin/bash
 
 PLATFORMS="darwin/amd64"
 PLATFORMS="$PLATFORMS windows/amd64"
+PLATFORMS="$PLATFORMS windows/386"
 PLATFORMS="$PLATFORMS linux/amd64"
+PLATFORMS="$PLATFORMS linux/386"
 PLATFORMS="$PLATFORMS freebsd/amd64"
 PLATFORMS="$PLATFORMS netbsd/amd64"
 PLATFORMS="$PLATFORMS openbsd/amd64"
