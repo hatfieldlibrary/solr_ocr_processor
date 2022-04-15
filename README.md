@@ -9,10 +9,10 @@ retrieved from DSpace using the DSpace IIIF integration.
 
 #### Supports
 * GET, POST, and DELETE methods
-* Addition of `MiniOcr`, `hOCR` or `ALTO` to the index with "full" or "lazy" indexing (with optional XML-encoding of Unicode characters), via POST.
+* Adding `MiniOcr`, `hOCR` or `ALTO` files to the Solr index with "full" or "lazy" indexing (and optional XML-encoding of Unicode characters).
 * Conversion of `hOCR` and `ALTO` files to `MiniOcr`.
-* Checks for whether OCR files have been indexed, via GET.
-* Removal of OCR files from the index and the file system if "lazy" indexing was used, via DELETE.
+* Checks for whether OCR files for a DSpace Item have already been indexed.
+* Removal of OCR files from the index, and from the file system if "lazy" indexing was used.
 
 #### Configuration Options
 * **http_port**: listen port of service
@@ -26,7 +26,12 @@ retrieved from DSpace using the DSpace IIIF integration.
 * **xml_file_location**: Path to OCR files (when "lazy" indexing used)
 * **log_dir**: Path to the log directory
 
-#### Overview
+#### Requirements
+* Go 1.16.15+ (if you are building your own binary and not using a distributed version)
+* DSpace 7+
+* Solr OCR Highlighting Plugin v0.7.2+
+
+## Overview
 The service works in conjunction with DSpace 7.x IIIF support. 
 
 When indexing a new item, the service retrieves an IIIF `AnnotationList` of OCR files from the 
@@ -44,7 +49,7 @@ You must add the solr-ocrhighlighting plugin to Solr. See the instructions: http
 
 You need an IIIF-enabled DSpace instance. Your DSpace `Items` must be individually enabled for IIIF and search via 
 the metadata fields `dspace-iiif-enabled` and `iiif-search-enabled`. The Item's OCR files must be
-in the DSpace Item's `OtherContent` Bundle. If your processing order is determined by structural metadata, be sure
+in the DSpace Item's `OtherContent` Bundle. If your processing order is determined by METS metadata, be sure
 to name your structural metadata file `mets.xml`. If this file does not exist or has not been correctly named, 
 processing order is determined by the order of OCR files in the `OtherContent` Bundle.
 
@@ -52,19 +57,24 @@ See DSpace IIIF documentation: https://wiki.lyrasis.org/display/DSDOC7x/IIIF+Con
 
 ## Installation
 
-#### Binary Files:
+#### Solr Core
 
-DSpace 7.x should eventually include OS-specific directories with starter configuration files and a Solr core that's pre-configured for the `solr-ocrhighlighting` plugin.
+Add the word_highlighting plugin to your Solr cores. DSpace 7.x may eventually include a starter core for you to use. In the 
+meantime, see the `solr-ocrhighlighting` documentation for more details.
 
-In the meantime, you can build from source.
+#### Binary Executables files and Sample Configuration:
 
-`go build -o /output/directory main.go `
+Archive files for various platforms are provided in the [Release List](https://github.com/mspalti/solr_ocr_processor/releases).
+
+You can also build from source.
+
+`go build -o /output/directory/<filename> main.go`
 
 For a specific platform:
 
-`env GOOS=<target-OS> GOARCH=<target-architecture> go build -o /output/directory main.go `
+`env GOOS=<target-OS> GOARCH=<target-architecture> go build -o /output/directory/<filename> main.go`
 
-#### Docker
+#### Using Docker
 
 Pull from Docker Hub:
 
@@ -72,7 +82,7 @@ Pull from Docker Hub:
 
 Example of running the container with volumes (Linux).
 
-`docker run -d -user <host_user_GID> --network host -v /host/path/to/configs:/processor/configs -v /host/path/to/logs:/var/log/ocr_processor -v /path/escaped/alto/files:/var/ocr_files mspalti/ocrprocessor`
+` docker run -d -u <host_user_GID> --network host --name ocr_processor -v /host/path/to/config:/processor -v /host/path/to/log:/var/log/ocr_processor -v /path/to/ocr_files:/var/ocr_files mspalti/ocr_processor`
 
 Note that you don't need to create a volume for the `/var/ocr_files` mount point if you aren't using "lazy" indexing. 
 
@@ -85,14 +95,18 @@ indexing.
 
 ## Usage
 
-POST, DELETE, or GET requests use the identifier of a DSpace Item as follows: 
+POST, DELETE, or GET requests use the identifier of a DSpace `Item` as follows: 
 
 `http://<host>:3000/item/413065ef-e242-4d0e-867d-8e2f6486be56`
 
+* GET returns 200 if the DSpace `Item` is in the Solr index and 404 if it has not yet been added.
+* DELETE removes all Solr index entries for the DSpace `Item` and OCR files from disk for "lazy" indexing.
+* POST adds all OCR files for the DSpace `Item` to the index.
+
 ### DSpace command line tool (under development)
 
-A DSpace CLI tool is currently being considered. That tool uses this service to add or delete OCR from the
-Solr index. The tool allows batch updates at the Community or Collection levels, as well as individual Item 
+A DSpace CLI tool is being considered. That tool uses this service to add or delete OCR from the
+Solr index. The CLI tool allows batch updates at the Community or Collection levels, as well as individual Item 
 updates. 
 
 Usage:
