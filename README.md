@@ -10,9 +10,10 @@ retrieved from DSpace using the DSpace IIIF integration.
 #### Supports
 * GET, POST, and DELETE methods
 * Adding `MiniOcr`, `hOCR` or `ALTO` files to the Solr index with "full" or "lazy" indexing (and optional XML-encoding of Unicode characters).
-* Conversion of `hOCR` and `ALTO` files to `MiniOcr`.
-* Checks for whether OCR files for a DSpace Item have already been indexed.
-* Removal of OCR files from the index, and from the file system if "lazy" indexing was used.
+* Converting of `hOCR` and `ALTO` files to `MiniOcr`.
+* Checking for whether OCR files for a DSpace Item have already been indexed.
+* Removing OCR files from the index, and from the file system if "lazy" indexing was used.
+* Converting ALTO inch1200 and mm10 units to pixel units.
 
 #### Configuration Options
 * **http_port**: listen port of service
@@ -24,6 +25,7 @@ retrieved from DSpace using the DSpace IIIF integration.
 * **index_type**: Full or lazy
 * **escape_utf8**: XML-encoding of unicode characters
 * **xml_file_location**: Path to OCR files (when "lazy" indexing used)
+* **input_image_resolution**: The default DPI for ALTO unit conversion
 * **log_dir**: Path to the log directory
 
 #### Requirements
@@ -38,7 +40,7 @@ When indexing a new item, the service retrieves an IIIF `AnnotationList` of OCR 
 DSpace `Item` record. The OCR files are pre-processed based on configuration options and added to the Solr index. 
 If "lazy" indexing is used, OCR files are written to disk.
 
-Processing order is determined either by structural metadata (e.g. METS) or the order of OCR files in the DSpace bundle. 
+Processing order is determined either by METS metadata or the order of OCR files in the DSpace bundle. 
 
 This service can be ran on the same host as Solr to support "lazy" indexing. If you are using "full" indexing
 or providing a shared file system by other means the service can run on a separate host
