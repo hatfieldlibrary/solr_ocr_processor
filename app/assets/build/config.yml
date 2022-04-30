@@ -8,6 +8,13 @@ ip_whitelist:
 dspace_host:
   # The DSpace api base url (no trailing slash)
   "http://localhost:8080/server"
+manifest_base:
+  # The base url for manifest ids in the solr index.
+  # This can be the same as the "dspace_host" above. But if
+  # you are running DSpace behind a proxy you need to
+  # set this to the proxy base url in order for
+  # manifest lookups to succeed. (no trailing slash)
+  "http://localhost:8080/server"
 solr_url:
   # The solr host (no trailing slash)
   "http://localhost:8983/solr"

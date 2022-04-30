@@ -16,7 +16,6 @@ import (
 	"strings"
 )
 
-
 // DeleteFromSolr removes all entries from the solr index for a uuid and (if lazy) removes ocr files from disk.
 func DeleteFromSolr(settings model.Configuration, uuid string) error {
 	manifestUrl := getDSpaceApiEndpoint(settings.DSpaceHost, uuid, "manifest")
@@ -98,9 +97,9 @@ func deleteFiles(files []model.Docs) error {
 
 // CheckSolr returns true if the index has entries for the uuid
 func CheckSolr(settings model.Configuration, uuid string) (bool, error) {
-	manifestUrl := getDSpaceApiEndpoint(settings.DSpaceHost, uuid, "manifest")
+	manifestUrl := getDSpaceApiEndpoint(settings.ManifestBase, uuid, "manifest")
 	solrUrl := fmt.Sprintf("%s/%s/select?fl=manifest_url&q=manifest_url:%s",
-		settings.SolrUrl, settings.SolrCore, url.QueryEscape("\""+manifestUrl+"\""))
+		settings.SolrUrl, settings.SolrCore, "\""+manifestUrl+"\"")
 	payloadBuf := new(bytes.Buffer)
 	req, err := http.NewRequest("GET", solrUrl, payloadBuf)
 	req.Header.Set("Content-Type", "application/json")

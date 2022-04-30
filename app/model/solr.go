@@ -27,8 +27,8 @@ type SolrResponse struct {
 }
 
 type Docs struct {
-	ManifestUrl []string `json:"manifest_url,omitempty"`
-	OcrText     string   `json:"ocr_text,omitempty"`
+	ManifestUrl string `json:"manifest_url,omitempty"`
+	OcrText     string `json:"ocr_text,omitempty"`
 }
 
 type SolrCreatePost struct {

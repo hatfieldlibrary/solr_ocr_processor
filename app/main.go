@@ -28,6 +28,7 @@ func config() (*Configuration, error) {
 	}
 	config := Configuration{
 		DSpaceHost:       viper.GetString("dspace_host"),
+		ManifestBase:     viper.GetString("manifest_base"),
 		Collections:      viper.GetStringSlice("Collections"),
 		SolrUrl:          viper.GetString("solr_url"),
 		SolrCore:         viper.GetString("solr_core"),

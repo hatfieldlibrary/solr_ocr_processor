@@ -2,6 +2,7 @@ package model
 
 type Configuration struct {
 	DSpaceHost           string
+	ManifestBase         string
 	Collections          []string
 	SolrUrl              string
 	SolrCore             string
