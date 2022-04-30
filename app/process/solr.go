@@ -18,7 +18,7 @@ import (
 
 // DeleteFromSolr removes all entries from the solr index for a uuid and (if lazy) removes ocr files from disk.
 func DeleteFromSolr(settings model.Configuration, uuid string) error {
-	manifestUrl := getDSpaceApiEndpoint(settings.DSpaceHost, uuid, "manifest")
+	manifestUrl := getDSpaceApiEndpoint(settings.ManifestBase, uuid, "manifest")
 	var files []model.Docs
 	var fileError error
 	if settings.IndexType == "lazy" {
