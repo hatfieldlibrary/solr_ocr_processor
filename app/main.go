@@ -61,6 +61,15 @@ func checkWhitelist(request *http.Request, whitelist []string) bool {
 	return inWhitelist
 }
 
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte("The OCR processor service is running."))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return
+}
+
 func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		// verify that the remote host is in whitelist
@@ -154,6 +163,7 @@ func main() {
 
 	// define routes
 	mux.Handle("/item/", indexer)
+	mux.HandleFunc("/status/", statusHandler)
 
 	// listen
 	serverError := http.ListenAndServe(":"+config.HttpPort, mux)
