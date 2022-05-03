@@ -1,24 +1,28 @@
 
 ## Processing Service for the DSpace IIIF Search API
-This service pre-processes OCR files for indexing by the `solr-ocrhighlighting` Solr plugin. OCR files are 
-retrieved from DSpace using the DSpace IIIF integration. 
+This service retrieves and pre-processes a DSpace Item's OCR files for indexing by the `solr-ocrhighlighting` 
+Solr plugin. OCR files are retrieved from DSpace using the DSpace IIIF integration. 
 
 **DSpace**: https://wiki.lyrasis.org/display/DSDOC7x
 
 **solr-ocrhighlighting plugin**: https://github.com/dbmdz/solr-ocrhighlighting. 
 
-#### Supports
-* GET, POST, and DELETE methods
-* Adding `MiniOcr`, `hOCR` or `ALTO` files to the Solr index with "full" or "lazy" indexing (and optional XML-encoding of Unicode characters).
-* Converting of `hOCR` and `ALTO` files to `MiniOcr`.
-* Checking for whether OCR files for a DSpace Item have already been indexed.
-* Removing OCR files from the index, and from the file system if "lazy" indexing was used.
-* Converting ALTO inch1200 and mm10 units to pixel units.
+#### Features
+* Supports GET, POST, and DELETE methods
+* Automatically detects the OCR format (`ALTO`, `hOCR`, `MiniOcr`)
+* Supports "full" or "lazy" indexing as required by configuration.
+* Converts `hOCR` and `ALTO` files to `MiniOcr` if required by configuration.
+* Updates OCR page identifiers to align with canvas identifiers (based on DSpace Bundle order or METS file).
+* For ALTO only, detects and converts `inch1200` and `mm10` units to pixels.
+* XML-encoding of Unicode characters if required by configuration.
+* Tests for whether OCR files for a DSpace Item have already been indexed via the GET method.
+* Remove OCR files for a DSpace Item from the index, and from the file system if "lazy" indexing was used.
 
 #### Configuration Options
 * **http_port**: listen port of service
 * **ip_whitelist**: IPs that are allowed access
 * **dspace_host**: Base URL of the DSpace service
+* **manifest_base**: Base URL used for Manifest ID (can be the same as the dspace_host)
 * **solr_url**: Base URL of the Solr service
 * **solr_core**: Solr core ("word_highlighting")
 * **miniocr_conversion**: Convert OCR to MiniOcr format
