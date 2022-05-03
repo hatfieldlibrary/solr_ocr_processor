@@ -1,2 +1,6 @@
 To run this service during development, copy the "config.yml" file from assets/build/config.yml
 to the root app directory.
+
+Then run this command:
+
+go run main.go
