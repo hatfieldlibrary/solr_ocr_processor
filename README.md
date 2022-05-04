@@ -30,6 +30,7 @@ Solr plugin. OCR files are retrieved from DSpace using the DSpace IIIF integrati
 * **escape_utf8**: XML-encoding of unicode characters
 * **xml_file_location**: Path to OCR files (when "lazy" indexing used)
 * **input_image_resolution**: The default DPI for ALTO unit conversion
+* **verbose_logging**: Log additional information during processing
 * **log_dir**: Path to the log directory
 
 #### Requirements
