@@ -31,15 +31,20 @@ func (axn GetItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 		return err
 	}
 	if !exists {
-		// If the item is not in index return 404 error code.
+		// if the item is not in index return 404 error code.
 		return NotFound{ID: *uuid}
+	}
+	if settings.VerboseLogging {
+		log.Printf("This DSpace Item is already in the Solr index: %s", *uuid)
 	}
 	return nil
 }
 
-// IndexerAction implements the handler interface for AddItem. It indexes OCR files for a given DSpace
-// Item UUID and writes files to disk if lazy loading is requested via configuration.
+// IndexerAction implements the handler interface for AddItem. It processes OCR files for a given DSpace
+// Item UUID and writes files to disk if lazy loading is requested via configuration. Note that this
+// implementation relies on the DSpace IIIF integration to retrieve OCR files for processing.
 func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, log *log.Logger) error {
+	log.Printf("Processing OCR files for DSpace Item: %s", *uuid)
 	manifestJson, err := process.GetManifest(settings.DSpaceHost, *uuid, log)
 	if err != nil {
 		return err
@@ -63,43 +68,59 @@ func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 		err := UnProcessableEntity{CAUSE: "no annotations exist for this item, nothing to process"}
 		return err
 	}
-	// Create an ordered list of file names using either the METS file (named mets.xml) or the DSpace bundle's
-	// bitstream order.
+	// Processing order determines page identifiers for Solr index entries. These must match Canvas identifiers
+	// in the IIIF manifest. If the identifiers do not align then search results and word highlighting will be
+	// incorrect. The order of OCR files in the DSpace OtherContent Bundle must therefore match the order of your
+	// page images before you attempt Solr indexing.
 	//
-	// Processing order determines the page identifiers for Solr index entries. These must match canvas identifiers
-	// in the IIIF manifest. If these identifiers do not align, search results and word highlighting will be incorrect.
-	// The METS file is a good way to assure correct order. Or, you can guarantee that OCR bitstreams in the DSpace
-	// OtherContent bundle (used for IIIF seeAlso annotations) were loaded in the correct order during DSpace Item
-	// creation.
+	// For METS/ALTO projects you can alternately use the order of OCR files found in the METS file. To use the
+	// METS file add it to the OtherContent bundle and name the file "mets.xml". If that file is found by
+	// the processor the order of processing will be the METS ordering. This can be helpful when the OtherContent
+	// Bundle order is inaccurate. Note that the OCR file names in METS and the OtherContent Bundle must be
+	// identical when using this approach.
 	var ocrFiles []string
+	usingMets := false
 	if metsReader, err := getMetsFileReader(annotationsMap["mets.xml"], log); err == nil {
 		ocrFiles = getMetsOcrFileNames(metsReader)
+		usingMets = true
 	} else {
 		ocrFiles = getOcrFilesFromAnnotationList(annotations.Resources)
 	}
+	if settings.VerboseLogging {
+		if usingMets {
+			log.Println("Using the METS file for the processing order.")
+			fileCount := len(ocrFiles)
+			log.Printf("Processing %d files for the Item %s", fileCount, *uuid)
+		}
+	}
 	var format process.Format
+	// initialize the ocr file counter
+	var ocrFilePosition = 0
 	// traverse though ordered list of file names
 	for i := 0; i < len(ocrFiles); i++ {
 		var ocr []byte
 		if len(ocrFiles[i]) > 0 {
-			// fetch the OCR from DSpace
+			// fetch the file from DSpace
 			ocr, err = process.GetOcrXml(annotationsMap[ocrFiles[i]], log)
 			if err != nil {
+				log.Printf("Failed to retrieve OCR file from DSpace: %s", annotationsMap[ocrFiles[i]])
+				if usingMets {
+					log.Println("Check to be sure that the OCR file names in the Bundle match the " +
+						"values in your METS file.")
+				}
 				return err
 			}
 			ocrString := string(ocr)
-			// get the OCR file format based on 1200 character sample
 			var chunk string
 			if len(ocr) > 1200 {
 				chunk = ocrString[0:1200]
 			} else {
 				chunk = ocrString
 			}
-			// Detect the OCR file format.
+			// detect the OCR file format based on the 1200 character sample
 			format = process.GetOcrFormat(chunk)
 		}
 		if len(ocr) != 0 {
-			log.Println("processing OCR format: " + format.String())
 			var processor process.OcrProcessor
 			switch format {
 			case process.AltoFormat:
@@ -112,34 +133,39 @@ func (axn AddItem) IndexerAction(settings *model.Configuration, uuid *string, lo
 				log.Printf("ignoring %s file format", format.String())
 			}
 			if processor != nil {
-				err := processor.ProcessOcr(uuid, ocrFiles[i], &ocr, i, manifest.Id, *settings, log)
+				if settings.VerboseLogging {
+					log.Printf("Attempting to process an OCR file in the %s format.", format.String())
+				}
+				err := processor.ProcessOcr(uuid, ocrFiles[i], &ocr, ocrFilePosition, manifest.Id, *settings, log)
 				if err != nil {
 					log.Printf("OCR processing failure for %s: %s", ocrFiles[i], err.Error())
 					return err
 				}
+				ocrFilePosition++
 			}
 
 		}
 	}
+	log.Printf("Completed processing item %s with %d OCR files added to the Solr index", *uuid, ocrFilePosition)
 	return nil
 }
 
 // IndexerAction implements the handler interface for DeleteItem. It deletes all OCR files
 // from the Solr index for a given DSpace Item UUID and removes files from disk if lazy loading is used.
 func (axn DeleteItem) IndexerAction(settings *model.Configuration, uuid *string, log *log.Logger) error {
+	log.Printf("Deleting OCR files for DSpace Item: %s", *uuid)
 	err := process.DeleteFromSolr(*settings, *uuid)
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("Error deleting OCR files from index for the item: %s", err.Error())
 		return err
 	}
-	log.Println("Deleted from index: " + *uuid)
 	return nil
 }
 
 // getMetsFileReader returns a byte reader for the METS file found in DSpace or an error if the file is not found
 func getMetsFileReader(identifier string, log *log.Logger) (io.Reader, error) {
 	if len(identifier) == 0 {
-		return nil, errors.New("an iiif identifier was not found for the mets.xml file")
+		return nil, errors.New("DSpace Bitstream identifier not found for the mets.xml file")
 	}
 	metsResponse, err := process.GetMetsXml(identifier, log)
 	if err != nil {
