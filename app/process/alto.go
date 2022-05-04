@@ -172,6 +172,9 @@ func updateAlto(alto *[]byte, position int, settings model.Configuration) (*stri
 
 	out := buffer.String()
 	updated := fixResponse(&out, settings)
+	if settings.VerboseLogging {
+		log.Println("Updated the input ALTO file.")
+	}
 	return updated, nil
 
 }
@@ -374,7 +377,9 @@ func convertToMiniOcr(original *string, position int, settings model.Configurati
 		// use single quotes to submit the XML in solr post
 		out = strings.ReplaceAll(out, "\"", "'")
 	}
-
+	if settings.VerboseLogging {
+		log.Println("Converted ALTO file to MiniOcr.")
+	}
 	return &out, nil
 
 }

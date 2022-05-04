@@ -154,7 +154,9 @@ func PostToSolrLazyLoad(uuid *string, fileName string, altoFile *string, manifes
 		return UnProcessableEntity{CAUSE: "Solr update problem. See log."}
 	}
 	defer resp.Body.Close()
-
+	if settings.VerboseLogging {
+		log.Printf("Added %s to Solr index", *uuid)
+	}
 	return nil
 
 }
@@ -182,5 +184,8 @@ func PostToSolr(uuid *string, fileName string, miniOcr *string, manifestId strin
 		return UnProcessableEntity{CAUSE: "Solr update problem. See log."}
 	}
 	defer resp.Body.Close()
+	if settings.VerboseLogging {
+		log.Printf("Added %s to Solr index", *uuid)
+	}
 	return nil
 }

@@ -61,6 +61,7 @@ func GetOcrXml(url string, log *log.Logger) ([]byte, error) {
 		errorMessage := UnProcessableEntity{CAUSE: "Could not retrieve OCR file. Status:  " + resp.Status}
 		return nil, errorMessage
 	}
+	log.Println("Proccessing OCR file: " + url)
 	return responseReader(resp.Body)
 }
 
