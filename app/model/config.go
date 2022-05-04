@@ -13,5 +13,6 @@ type Configuration struct {
 	HttpPort             string
 	IpWhitelist          []string
 	InputImageResolution int
+	VerboseLogging       bool
 	LogDir               string
 }

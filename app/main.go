@@ -38,6 +38,7 @@ func config() (*Configuration, error) {
 		XmlFileLocation:  viper.GetString("xml_file_location"),
 		HttpPort:         viper.GetString("http_port"),
 		IpWhitelist:      viper.GetStringSlice("ip_whitelist"),
+		VerboseLogging:   viper.GetBool("verbose_logging"),
 		LogDir:           viper.GetString("log_dir"),
 	}
 
@@ -163,7 +164,7 @@ func main() {
 
 	// define routes
 	mux.Handle("/item/", indexer)
-	mux.HandleFunc("/status/", statusHandler)
+	mux.HandleFunc("/status", statusHandler)
 
 	// listen
 	serverError := http.ListenAndServe(":"+config.HttpPort, mux)

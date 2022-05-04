@@ -49,6 +49,9 @@ input_image_resolution:
   # in the ALTO processing elements. If it is not found, the default resolution below is used. You can change
   # the default resolution if needed.
   300
+verbose_logging:
+  # Log additional information during processing.
+  false
 log_dir:
   # The location of your log directory. (Use Windows file path for Windows.)
   "/var/log/ocr_processor"
