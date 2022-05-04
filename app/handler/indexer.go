@@ -185,10 +185,10 @@ func getOcrFilesFromAnnotationList(annotations []model.ResourceAnnotation) []str
 
 // getMetsOcrFileNames creates the array of file names from the METS file.
 func getMetsOcrFileNames(metsReader io.Reader) []string {
-	var fileNames = make([]string, 50)
+	var fileNames = make([]string, 100)
 	parser := xml.NewDecoder(metsReader)
 	ocrFileElement := false
-	altoCounter := 0
+	ocrCounter := 0
 	for {
 		token, err := parser.Token()
 		if err != nil {
@@ -208,13 +208,13 @@ func getMetsOcrFileNames(metsReader io.Reader) []string {
 				for i := 0; i < len(t.Attr); i++ {
 					if t.Attr[i].Name.Local == "href" {
 						// Allocate more capacity.
-						if altoCounter == cap(fileNames) {
+						if ocrCounter == cap(fileNames) {
 							newFileNames := make([]string, 2*cap(fileNames))
 							copy(newFileNames, fileNames)
 							fileNames = newFileNames
 						}
-						fileNames[altoCounter] = t.Attr[i].Value
-						altoCounter++
+						fileNames[ocrCounter] = t.Attr[i].Value
+						ocrCounter++
 					}
 				}
 			}
@@ -227,7 +227,7 @@ func getMetsOcrFileNames(metsReader io.Reader) []string {
 		}
 	}
 
-	return fileNames
+	return fileNames[:ocrCounter]
 
 }
 
