@@ -16,6 +16,8 @@ import (
 
 const configFilePath = "."
 
+var logger *log.Logger
+
 func config() (*Configuration, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -119,7 +121,7 @@ func indexingHandler(config *Configuration, logger *log.Logger) http.HandlerFunc
 }
 
 func handleError(err error, response http.ResponseWriter, code int) {
-	log.Println(err.Error())
+	logger.Println(err.Error())
 	switch err.(type) {
 	case UnProcessableEntity:
 		response.WriteHeader(422)
@@ -141,7 +143,6 @@ func getLogFile(config *Configuration) (*os.File, error) {
 }
 
 func main() {
-
 	// app configuration
 	config, err := config()
 	if err != nil {
@@ -149,14 +150,14 @@ func main() {
 		return
 	}
 
-	// logging
+	// set up logging
 	file, err := getLogFile(config)
 	if err != nil {
 		println("Log file directory not found: " + err.Error())
 		return
 	}
 	defer file.Close()
-	logger := log.New(file, "indexer: ", log.LstdFlags)
+	logger = log.New(file, "indexer: ", log.LstdFlags)
 
 	// set up the server and handler(s)
 	mux := http.NewServeMux()
@@ -171,5 +172,6 @@ func main() {
 	if serverError != nil {
 		logger.Fatal(serverError)
 	}
+	logger.Println("Server started and listening on port: " + config.HttpPort)
 
 }
