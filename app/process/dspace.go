@@ -15,6 +15,12 @@ func GetManifest(host string, uuid string, log *log.Logger) ([]byte, error) {
 		log.Println(err.Error())
 		return nil, err
 	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Unable to close DSpace Manifest response.")
+		}
+	}(resp.Body)
 	if resp.StatusCode != 200 {
 		errorMessage := UnProcessableEntity{CAUSE: "Could not retrieve manifest. Status:  " + resp.Status}
 		return nil, errorMessage
@@ -29,6 +35,12 @@ func GetAnnotationList(id string, log *log.Logger) ([]byte, error) {
 		log.Println(err.Error())
 		return nil, err
 	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Unable to close DSpace AnnotationList response.")
+		}
+	}(resp.Body)
 	if resp.StatusCode != 200 {
 		errorMessage := UnProcessableEntity{CAUSE: "Could not retrieve annotations. Status:  " + resp.Status}
 		return nil, errorMessage
@@ -43,6 +55,12 @@ func GetMetsXml(url string, log *log.Logger) ([]byte, error) {
 		log.Println(err.Error())
 		return nil, err
 	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Unable to close DSpace METS response.")
+		}
+	}(resp.Body)
 	if resp.StatusCode != 200 {
 		errorMessage := UnProcessableEntity{CAUSE: "Could not retrieve mets xml. Status:  " + resp.Status}
 		return nil, errorMessage
@@ -56,6 +74,12 @@ func GetOcrXml(url string, log *log.Logger) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Unable to close DSpace OCR response.")
+		}
+	}(resp.Body)
 	if resp.StatusCode != 200 {
 		log.Println(err.Error())
 		errorMessage := UnProcessableEntity{CAUSE: "Could not retrieve OCR file. Status:  " + resp.Status}

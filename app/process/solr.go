@@ -7,6 +7,7 @@ import (
 	"fmt"
 	. "github.com/mspalti/ocrprocessor/err"
 	"github.com/mspalti/ocrprocessor/model"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -153,7 +154,12 @@ func PostToSolrLazyLoad(uuid *string, fileName string, altoFile *string, manifes
 		log.Println(err.Error())
 		return UnProcessableEntity{CAUSE: "Solr update problem. See log."}
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Unable to close Solr response.")
+		}
+	}(resp.Body)
 	if settings.VerboseLogging {
 		log.Printf("Added %s to Solr index", *uuid)
 	}
@@ -183,7 +189,12 @@ func PostToSolr(uuid *string, fileName string, miniOcr *string, manifestId strin
 		log.Println(err.Error())
 		return UnProcessableEntity{CAUSE: "Solr update problem. See log."}
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Unable to close Solr response.")
+		}
+	}(resp.Body)
 	if settings.VerboseLogging {
 		log.Printf("Added %s to Solr index", *uuid)
 	}
