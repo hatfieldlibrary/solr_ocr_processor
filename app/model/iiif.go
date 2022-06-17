@@ -5,17 +5,17 @@ type Manifest struct {
 	Type        string     `json:"@type"`
 	Id          string     `json:"@id"`
 	Label       string     `json:"label"`
-	Metadata    []Metadata `json:"metadata"`
-	Service     Service    `json:"service,omitempty"`
+	Metadata    []Metadata `json:"-"`
+	Service     Service    `json:"-"`
 	SeeAlso     SeeAlso    `json:"SeeAlso,omitempty"`
-	Sequences   []Sequence `json:"sequences"`
-	Thumbnail   Thumbnail  `json:"thumbnail,omitempty"`
-	ViewingHint string     `json:"viewingHint,omitempty"`
-	Related     Related    `json:"related,omitempty"`
+	Sequences   []Sequence `json:"-"`
+	Thumbnail   Thumbnail  `json:"-"`
+	ViewingHint string     `json:"-"`
+	Related     Related    `json:"-"`
 }
 type Metadata struct {
-	Label string `json:"label"`
-	Value string `json:"value"`
+	Label string   `json:"label"`
+	Value []string `json:"value"`
 }
 
 type Service struct {
